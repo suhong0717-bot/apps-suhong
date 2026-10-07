@@ -446,7 +446,6 @@ body {
 <!-- Toast -->
 <div class="bb-toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/google-api-client/1.0.1/lib/gapi.min.js"></script>
 <script>
 // ── Constants ──
 const CLIENT_ID = '401384383704-caa5c1k08jr33ob98fvr5q28eb79561g.apps.googleusercontent.com';
@@ -477,12 +476,16 @@ const BACKUP_KEYS = {
 let tokenClient = null;
 let accessToken = null;
 let restoreFileId = null;
+let gapiReady = false;
 
 // ── Init ──
 window.addEventListener('load', function() {
-  loadGapi();
   updateUI();
-  checkAutoBackup();
+  // Load gapi dynamically from Google's own CDN
+  var s = document.createElement('script');
+  s.src = 'https://apis.google.com/js/api.js';
+  s.onload = function() { loadGapi(); };
+  document.head.appendChild(s);
 });
 
 function loadGapi() {
@@ -490,6 +493,7 @@ function loadGapi() {
     gapi.client.init({
       discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
     }).then(function() {
+      gapiReady = true;
       // Try to restore saved token
       var saved = getSavedToken();
       if (saved) {
@@ -497,6 +501,7 @@ function loadGapi() {
         gapi.client.setToken({ access_token: accessToken });
         verifyToken();
       }
+      checkAutoBackup();
     }).catch(function(e) {
       console.warn('gapi init error', e);
     });
