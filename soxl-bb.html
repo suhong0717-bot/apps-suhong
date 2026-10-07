@@ -754,15 +754,50 @@ const SX_IMPORT_B = {
   "08.19": ["sell", 3, 123.97],   "08.24": ["sell", 4, 111.1425], "09.17": ["sell", 5, 107.04],
   "09.22": ["buy", 6, 148.0633]
 };
+/* A계좌 매매 42건 (LOC 주문표 + 종가로 체결 계산, 체결가 = 그날 종가) */
+const SX_IMPORT_A = {
+  "07.23": ["buy", 3], "07.24": ["buy", 14], "07.27": ["buy", 15], "07.28": ["buy", 15], "07.29": ["buy", 16],
+  "07.30": ["sell", 27], "08.03": ["sell", 10], "08.04": ["sell", 23], "08.05": ["buy", 17], "08.06": ["buy", 9],
+  "08.07": ["sell", 12], "08.10": ["buy", 16], "08.12": ["sell", 24], "08.13": ["sell", 5], "08.14": ["buy", 8],
+  "08.17": ["sell", 16], "08.18": ["buy", 16], "08.19": ["buy", 16], "08.20": ["sell", 4], "08.21": ["buy", 8],
+  "08.24": ["buy", 16], "08.25": ["sell", 15], "08.26": ["sell", 8], "08.27": ["sell", 17], "08.28": ["buy", 16],
+  "08.31": ["sell", 8], "09.01": ["buy", 18], "09.04": ["sell", 17], "09.08": ["sell", 14], "09.09": ["sell", 8],
+  "09.10": ["buy", 15], "09.11": ["sell", 20], "09.14": ["buy", 14], "09.15": ["sell", 16], "09.16": ["sell", 5],
+  "09.17": ["sell", 1], "09.23": ["buy", 10], "09.25": ["sell", 10], "09.28": ["buy", 10], "09.29": ["sell", 8],
+  "10.01": ["sell", 2], "10.02": ["buy", 5]
+};
+const SX_A_FIX_FLAG = "soxl-a-import-v2";
+function sxDateKey(r) { const p = r.date.split(".").map(Number); return p[0] * 100 + p[1]; }
 function sxApplyImport() {
-  const key = (r) => { const p = r.date.split(".").map(Number); return p[0] * 100 + p[1]; };
+  let done = false;
+  try { done = localStorage.getItem(SX_A_FIX_FLAG) === "1"; } catch (e) {}
   if (!sxA.length || !sxB.length) return;
-  if (key(sxA[sxA.length - 1]) >= 723 || key(sxB[sxB.length - 1]) >= 723) return; // 이미 7/23 이후 기록이 있으면 건드리지 않음
-  SX_IMPORT.forEach(([date, close]) => {
-    sxA.push(sxComputeNewRow({ data: sxA, date, type: "none", qty: 0, close, trade: null }));
-    const t = SX_IMPORT_B[date];
-    sxB.push(sxComputeNewRow({ data: sxB, date, type: t ? t[0] : "none", qty: t ? t[1] : 0, close, trade: t ? t[2] : null }));
-  });
+  const closeOf = {}; SX_IMPORT.forEach(([d, c]) => { closeOf[d] = c; });
+  const aRow = (data, date) => { const t = SX_IMPORT_A[date]; return sxComputeNewRow({ data, date, type: t ? t[0] : "none", qty: t ? t[1] : 0, close: closeOf[date], trade: null }); };
+
+  if (sxDateKey(sxA[sxA.length - 1]) < 723 && sxDateKey(sxB[sxB.length - 1]) < 723) {
+    // ① 기록이 7/22에서 끝난 상태 → A·B 모두 7/23~10/6 이어 붙임
+    SX_IMPORT.forEach(([date, close]) => {
+      sxA.push(aRow(sxA, date));
+      const t = SX_IMPORT_B[date];
+      sxB.push(sxComputeNewRow({ data: sxB, date, type: t ? t[0] : "none", qty: t ? t[1] : 0, close, trade: t ? t[2] : null }));
+    });
+    done = true;
+  } else if (!done) {
+    // ② 이전 버전에서 A가 '거래 없음'으로 임시 채워진 상태 → 그 구간만 실제 매매로 교체
+    const inRange = (r) => { const k = sxDateKey(r); return k >= 723 && k <= 1006; };
+    const mid = sxA.filter(inRange);
+    const untouched = mid.length === SX_IMPORT.length && mid.every((r) => r.tx === "-");
+    if (untouched) {
+      const head = sxA.filter((r) => sxDateKey(r) < 723);
+      const tail = sxA.filter((r) => sxDateKey(r) > 1006);
+      const rebuilt = head.slice();
+      SX_IMPORT.forEach(([date]) => { rebuilt.push(aRow(rebuilt, date)); });
+      sxA = sxRecompute(rebuilt.concat(tail)); // 10/7 이후 직접 입력한 기록은 유지하고 다시 계산
+      done = true;
+    }
+  }
+  if (done) { try { localStorage.setItem(SX_A_FIX_FLAG, "1"); } catch (e) {} }
 }
 
 let sxA = [], sxB = [];
