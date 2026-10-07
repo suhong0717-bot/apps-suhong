@@ -490,13 +490,28 @@ td:first-child { text-align: left; color: var(--fg); }
 .form-error { color: var(--red); font-family: var(--mono); font-size: 11px; margin-bottom: 6px; }
 .form-success { color: var(--green); font-family: var(--mono); font-size: 11px; margin-bottom: 6px; }
 .delete-msg { color: var(--green); font-family: var(--mono); font-size: 11px; }
+
+/* ── 상단바 통일 (자산 관리 포맷 기준) ── */
+.topbar { border-bottom-width: 3px; padding: 0 12px; }
+.topbar-back {
+  background: rgba(255,107,0,0.08); border: 1px solid rgba(255,107,0,0.3); color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; padding: 4px 12px;
+  border-radius: 20px; letter-spacing: .04em; text-transform: none; gap: 6px;
+}
+.topbar-back::before { content: none; }
+.topbar-back:hover { background: rgba(255,107,0,0.15); color: var(--accent); border-color: rgba(255,107,0,0.3); }
+.ver-btn, .ver-btn:hover {
+  background: var(--bg3); border: 1px solid rgba(255,107,0,0.3); color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; padding: 4px 12px;
+  border-radius: 20px; letter-spacing: 0;
+}
 </style>
 </head>
 <body>
 
 <!-- Top Bar -->
 <div class="topbar">
-  <a href="index.html" class="topbar-back">AI Tool 모음</a>
+  <a href="index.html" class="topbar-back">← AI Tool 모음</a>
   <span class="topbar-title">SOXL TRACKER</span>
   <div style="position:relative;">
     <button class="ver-btn" onclick="toggleVersionPopup(event)">v10.08</button>

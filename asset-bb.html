@@ -261,6 +261,13 @@ body {
 .undo-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--total); border-radius: 0 0 16px 16px; width: 100%; transform-origin: left; }
 
 @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* ── 상단바 가운데 제목 (팔로우 트래커 포맷) ── */
+.topbar-title {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 700; color: #ff6b00;
+  letter-spacing: .12em; text-transform: uppercase; white-space: nowrap;
+  position: absolute; left: 50%; transform: translateX(-50%);
+}
 </style>
 </head>
 <body>
@@ -268,6 +275,7 @@ body {
 <!-- Top Bar -->
 <div class="topbar">
   <a href="index.html" class="topbar-back">← AI Tool 모음</a>
+  <span class="topbar-title">ASSET MANAGER</span>
   <div style="position:relative;">
     <button class="topbar-ver-btn" onclick="toggleVersionPopup(event)">v10.08</button>
     <div id="versionPopup" class="ver-popup">

@@ -350,6 +350,19 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
+
+/* ── 개발 정보 (접이식) ── */
+.dev-info { margin-top: 28px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--fg3); }
+.dev-info summary { cursor: pointer; letter-spacing: .1em; padding: 8px 0; border-top: 1px solid var(--border); list-style: none; }
+.dev-info summary::-webkit-details-marker { display: none; }
+.dev-info summary::before { content: '▸ '; }
+.dev-info[open] summary::before { content: '▾ '; }
+.dev-info dl { margin: 4px 0 0; display: grid; gap: 12px; line-height: 1.7; }
+.dev-info dt { letter-spacing: .08em; opacity: .8; }
+.dev-info dd { margin: 2px 0 0; overflow-wrap: anywhere; user-select: all; }
+.dev-info dd.rule { user-select: text; }
+.dev-info a { color: inherit; }
+.dev-info ol { margin: 0; padding-left: 18px; }
 </style>
 
 <!-- Topbar -->
@@ -357,10 +370,10 @@ body {
   <div class="bb-logo">⬛ AI TOOLS <span>PERSONAL DASHBOARD</span></div>
   <div class="bb-topbar-right">
     <div style="position:relative;margin-right:8px;">
-      <button style="background:var(--bg3);border:1px solid rgba(255,107,0,0.3);color:var(--accent);font-family:var(--mono);font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;cursor:pointer;" onclick="toggleVerPopup(event)">v10.08</button>
+      <button style="background:var(--bg3);border:1px solid rgba(255,107,0,0.3);color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;cursor:pointer;" onclick="toggleVerPopup(event)">v10.08</button>
       <div id="verPopup" style="display:none;position:absolute;right:0;top:32px;background:#0d0d17;border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:10px;padding:12px 16px;width:max-content;box-shadow:0 4px 16px rgba(0,0,0,0.6);z-index:10000;">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--accent);font-weight:700;margin-bottom:8px;">업데이트 내역</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--fg);line-height:1.8;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);font-weight:700;margin-bottom:8px;">업데이트 내역</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--fg);line-height:1.8;">
           <div style="white-space:nowrap;"><span style="color:var(--accent);">v10.08</span> · 모바일 화면 최적화, 웹 앱 설치 지원</div>
           <div style="white-space:nowrap;"><span style="color:var(--fg2);">v10.07</span> · 블룸버그 테마, Drive 자동 백업</div>
           <div style="white-space:nowrap;"><span style="color:var(--fg2);">v08.07</span> · 초기 출시</div>
@@ -451,6 +464,32 @@ body {
     </div>
   </div>
 
+
+  <!-- Dev info -->
+  <details class="dev-info">
+    <summary>DEV INFO · 개발 정보</summary>
+    <dl>
+      <div>
+        <dt>GITHUB (파일 올리는 곳)</dt>
+        <dd><a href="https://github.com/suhong0717-bot/apps-suhong" target="_blank" rel="noopener">https://github.com/suhong0717-bot/apps-suhong</a></dd>
+      </div>
+      <div>
+        <dt>접속 주소 (인터넷으로 여는 주소)</dt>
+        <dd><a href="https://suhong0717-bot.github.io/apps-suhong/">https://suhong0717-bot.github.io/apps-suhong/</a></dd>
+      </div>
+      <div>
+        <dt>버전 정보 변경 룰</dt>
+        <dd class="rule">
+          <ol>
+            <li>변경이 하나라도 생기면 version.js 의 VERSION 숫자를 올린다 (전 페이지 버튼에 공통 표시).</li>
+            <li>실제로 바뀐 페이지에만 version.js 의 LOG 에 변경 내용을 한 줄 추가한다.</li>
+            <li>GitHub 에는 바뀐 페이지 파일 + version.js 만 올린다.</li>
+            <li>올린 뒤 우상단 버전 숫자가 바뀌었으면 반영 완료.</li>
+          </ol>
+        </dd>
+      </div>
+    </dl>
+  </details>
 </div>
 
 <!-- Restore modal -->

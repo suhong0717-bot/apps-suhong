@@ -531,11 +531,34 @@ tbody tr:hover td { background: rgba(255,107,0,0.06); }
 }
 .empty .icon { font-size: 28px; }
 .empty p { font-size: 12px; color: var(--fg3); font-family: 'IBM Plex Mono', monospace; }
+
+/* ── 상단바 통일 (자산 관리 포맷 기준) ── */
+.bb-topbar { border-bottom-width: 3px; padding: 0 12px; }
+.bb-home-btn {
+  background: rgba(255,107,0,0.08); border: 1px solid rgba(255,107,0,0.3); color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; padding: 4px 12px;
+  border-radius: 20px; letter-spacing: .04em; text-transform: none; gap: 6px;
+}
+.bb-home-btn::before { content: none; }
+.bb-home-btn:hover { background: rgba(255,107,0,0.15); color: var(--accent); border-color: rgba(255,107,0,0.3); }
+.bb-ver-btn, .bb-ver-btn:hover {
+  background: var(--bg3); border: 1px solid rgba(255,107,0,0.3); color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; padding: 4px 12px;
+  border-radius: 20px; letter-spacing: 0;
+}
+
+/* ── 상단바 가운데 제목 (팔로우 트래커 포맷) ── */
+.topbar-title {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 700; color: #ff6b00;
+  letter-spacing: .12em; text-transform: uppercase; white-space: nowrap;
+  position: absolute; left: 50%; transform: translateX(-50%);
+}
 </style>
 
 <!-- Topbar -->
 <div class="bb-topbar">
-  <a href="index.html" class="bb-home-btn">⬛ AI TOOLS</a>
+  <a href="index.html" class="bb-home-btn">← AI Tool 모음</a>
+  <span class="topbar-title">WEDDING LEDGER</span>
   <div style="position:relative;">
     <button class="bb-ver-btn" onclick="toggleVersionPopup(event)">v10.08</button>
     <div id="versionPopup" class="bb-popup">
