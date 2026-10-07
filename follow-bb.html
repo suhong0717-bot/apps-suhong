@@ -578,6 +578,13 @@ tr.drag-over { border-top: 2px solid var(--accent); }
   font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; padding: 4px 12px;
   border-radius: 20px; letter-spacing: 0;
 }
+
+/* ── 거래 입력: 1줄 = 종목 | 수량, 2줄 = 버튼 3개 (화면 폭에 맞춰 늘고 줄어듦) ── */
+.trade-fields { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 10px 8px; align-items: end; }
+.trade-fields .field { min-width: 0; max-width: none; }
+.trade-fields .bb-select, .trade-fields .bb-input-full { height: 36px; font-size: 13px; box-sizing: border-box; }
+.trade-btns { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.trade-btns .bb-btn { height: 38px; padding: 0 4px; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -605,7 +612,7 @@ tr.drag-over { border-top: 2px solid var(--accent); }
 
   <!-- Header row -->
   <div class="header-row">
-    <div class="stock-count-info">종목 수: <b id="stockCountHeader">0</b>개</div>
+    <div class="stock-count-info" style="display:none;">종목 수: <b id="stockCountHeader">0</b>개</div>
     <div class="ratio-group">
       <span class="ratio-label">비율 1/</span>
       <input id="ratioInput" type="number" min="1" max="100" value="15" class="bb-input" oninput="updateRatio()">
@@ -614,8 +621,8 @@ tr.drag-over { border-top: 2px solid var(--accent); }
     </div>
   </div>
 
-  <!-- MEMO -->
-  <div class="bb-card">
+  <!-- MEMO (숨김) -->
+  <div class="bb-card" style="display:none;">
     <div class="bb-card-header" onclick="toggleMemo()">
       <div class="bb-card-header-left">
         <span class="bb-card-header-tag">MEMO</span>
@@ -698,7 +705,7 @@ tr.drag-over { border-top: 2px solid var(--accent); }
           <label>종목</label>
           <select id="tradeStock" class="bb-select"></select>
         </div>
-        <div class="field" style="max-width:140px;">
+        <div class="field">
           <label>미주은 수량</label>
           <input type="number" id="tradeQty" min="1" placeholder="수량 입력" class="bb-input-full" />
         </div>
