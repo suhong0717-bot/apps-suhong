@@ -1268,7 +1268,7 @@ function renderSoxl() {
   sxDrawChart('sx-chart-balance', 'sx-legend-balance', labels, [
     { label: 'A계좌 잔고', data: rows.map(r => r.aBalance), color: '#58a6ff', axis: 'left' },
     { label: 'B계좌 잔고', data: rows.map(r => r.bBalance), color: '#ff80ab', axis: 'left' },
-    { label: '종가', data: rows.map(r => r.close), color: '#ff6b00', axis: 'right', dashed: true },
+    { label: '종가', data: rows.map(r => r.close), color: '#ffd84d', axis: 'right', dashed: true },
   ], { leftMin: 0 });
 
   const diffData = rows.map(r => (r.aTotal !== null && r.aTotal !== undefined && r.bTotal !== null && r.bTotal !== undefined)
@@ -1278,12 +1278,12 @@ function renderSoxl() {
   sxDrawChart('sx-chart-pnl', 'sx-legend-pnl', labels, [
     { label: 'A계좌', data: rows.map(r => r.aTotal), color: '#58a6ff', axis: 'left' },
     { label: 'B계좌', data: rows.map(r => r.bTotal), color: '#ff80ab', axis: 'left' },
-    { label: '종가', data: rows.map(r => r.close), color: '#ff6b00', axis: 'right', dashed: true },
+    { label: '종가', data: rows.map(r => r.close), color: '#ffd84d', axis: 'right', dashed: true },
   ]);
 
   sxDrawChart('sx-chart-diff', 'sx-legend-diff', labels, [
     { label: 'A-B 차이', data: diffData, color: '#a78bfa', axis: 'left' },
-    { label: '종가', data: rows.map(r => r.close), color: '#ff6b00', axis: 'right', dashed: true },
+    { label: '종가', data: rows.map(r => r.close), color: '#ffd84d', axis: 'right', dashed: true },
   ], { zeroLine: true });
 
   sxUpdateRangeUI();
