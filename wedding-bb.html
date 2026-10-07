@@ -1,3 +1,10 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<style>html,body{margin:0}*,*::before,*::after{box-sizing:border-box}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>AI Tools</title>
 <title>축의금 장부</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap">
 <style>
@@ -130,6 +137,7 @@ body {
 .bb-popup-body .ver-cur { color: var(--accent); font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
 .bb-popup-body .ver-old { color: var(--fg3); font-family: 'IBM Plex Mono', monospace; }
 
+body { padding-top: 47px; } /* 고정 상단바 높이만큼 내림 */
 /* ── Sticky search/filter bar ── */
 .sticky-bar {
   position: sticky;
@@ -529,11 +537,12 @@ tbody tr:hover td { background: rgba(255,107,0,0.06); }
 <div class="bb-topbar">
   <a href="index.html" class="bb-home-btn">⬛ AI TOOLS</a>
   <div style="position:relative;">
-    <button class="bb-ver-btn" onclick="toggleVersionPopup(event)">v10.07</button>
+    <button class="bb-ver-btn" onclick="toggleVersionPopup(event)">v10.08</button>
     <div id="versionPopup" class="bb-popup">
       <div class="bb-popup-title">업데이트 내역</div>
       <div class="bb-popup-body">
-        <div><span class="ver-cur">v10.07</span> · 런처 분리</div>
+        <div><span class="ver-cur">v10.08</span> · 모바일 화면 최적화, 제목 가림 수정</div>
+        <div><span class="ver-old">v10.07</span> · 런처 분리</div>
         <div><span class="ver-old">v08.07</span> · 초기 출시</div>
       </div>
     </div>
@@ -1123,3 +1132,4 @@ document.addEventListener('click', function() {
   if (p) p.style.display = 'none';
 });
 </script>
+<script src="version.js" data-page="wedding"></script>

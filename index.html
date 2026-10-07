@@ -1,3 +1,10 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<style>html,body{margin:0}*,*::before,*::after{box-sizing:border-box}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>AI Tools</title>
 <title>AI Tools</title>
 <link rel="manifest" href="launcher-manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -350,11 +357,12 @@ body {
   <div class="bb-logo">⬛ AI TOOLS <span>PERSONAL DASHBOARD</span></div>
   <div class="bb-topbar-right">
     <div style="position:relative;margin-right:8px;">
-      <button style="background:var(--bg3);border:1px solid rgba(255,107,0,0.3);color:var(--accent);font-family:var(--mono);font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;cursor:pointer;" onclick="toggleVerPopup(event)">v10.07</button>
+      <button style="background:var(--bg3);border:1px solid rgba(255,107,0,0.3);color:var(--accent);font-family:var(--mono);font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;cursor:pointer;" onclick="toggleVerPopup(event)">v10.08</button>
       <div id="verPopup" style="display:none;position:absolute;right:0;top:32px;background:#0d0d17;border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:10px;padding:12px 16px;width:max-content;box-shadow:0 4px 16px rgba(0,0,0,0.6);z-index:10000;">
         <div style="font-family:var(--mono);font-size:10px;color:var(--accent);font-weight:700;margin-bottom:8px;">업데이트 내역</div>
         <div style="font-family:var(--mono);font-size:10px;color:var(--fg);line-height:1.8;">
-          <div style="white-space:nowrap;"><span style="color:var(--accent);">v10.07</span> · 블룸버그 테마, Drive 자동 백업, 앱 설치</div>
+          <div style="white-space:nowrap;"><span style="color:var(--accent);">v10.08</span> · 모바일 화면 최적화, 웹 앱 설치 지원</div>
+          <div style="white-space:nowrap;"><span style="color:var(--fg2);">v10.07</span> · 블룸버그 테마, Drive 자동 백업</div>
           <div style="white-space:nowrap;"><span style="color:var(--fg2);">v08.07</span> · 초기 출시</div>
         </div>
       </div>
@@ -894,3 +902,4 @@ function showToast(msg, type) {
   toastTimer = setTimeout(function() { el.className = 'bb-toast'; }, 3500);
 }
 </script>
+<script src="version.js" data-page="index"></script>
