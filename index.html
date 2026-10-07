@@ -1,4 +1,10 @@
 <title>AI Tools</title>
+<link rel="manifest" href="launcher-manifest.json">
+<meta name="theme-color" content="#0f1318">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AI Tools">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap">
 <style>
 :root {
@@ -480,6 +486,10 @@ let gapiReady = false;
 
 // ── Init ──
 window.addEventListener('load', function() {
+  // Register service worker for PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('launcher-sw.js').catch(function(){});
+  }
   updateUI();
   // Load gapi dynamically from Google's own CDN
   var s = document.createElement('script');
