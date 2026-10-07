@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SOXL 트래커">
+<meta name="theme-color" content="#0f1318">
+<title>SOXL 트래커</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg:       #0f1318;
+  --bg2:      #141720;
+  --bg3:      #1a1e28;
+  --border:   #2a2d38;
+  --border2:  #1e2230;
+  --fg:       #d0d8e8;
+  --fg2:      #8899aa;
+  --fg3:      #556070;
+  --accent:   #ff6b00;
+  --accent2:  #cc5500;
+  --green:    #22c55e;
+  --red:      #ef4444;
+  --blue:     #58a6ff;
+  --mono:     'IBM Plex Mono', monospace;
+  --sans:     'IBM Plex Sans KR', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 13px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 60px;
+}
+
+/* ── Top Bar ── */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: var(--bg2);
+  border-bottom: 2px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  z-index: 9999;
+}
+.topbar-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fg2);
+  letter-spacing: .06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color .15s;
+}
+.topbar-back:hover { color: var(--accent); }
+.topbar-back::before { content: '◀'; font-size: 9px; }
+.topbar-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  white-space: nowrap;
+}
+.ver-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--fg3);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 3px 8px;
+  cursor: pointer;
+  letter-spacing: .06em;
+  transition: color .15s, border-color .15s;
+  position: relative;
+}
+.ver-btn:hover { color: var(--accent); border-color: var(--accent); }
+#versionPopup {
+  display: none;
+  position: absolute;
+  right: 0; top: calc(100% + 6px);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--accent);
+  padding: 10px 14px;
+  min-width: 240px;
+  z-index: 10000;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--fg2);
+}
+#versionPopup strong { color: var(--accent); }
+
+/* ── Layout ── */
+.st-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 12px 24px;
+}
+
+/* ── BB Cards ── */
+.bb-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.bb-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--border2);
+  transition: background .1s;
+}
+.bb-card-header:hover { background: var(--bg3); }
+.bb-card-header-left { display: flex; align-items: center; gap: 8px; }
+.bb-card-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  padding: 2px 6px;
+  border-radius: 1px;
+  text-transform: uppercase;
+  background: rgba(255,107,0,.12);
+  color: var(--accent);
+  border: 1px solid rgba(255,107,0,.3);
+}
+.bb-card-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fg);
+  letter-spacing: .06em;
+}
+.bb-card-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg3);
+}
+.bb-card-chevron {
+  font-size: 10px;
+  color: var(--fg3);
+  transition: transform .2s;
+}
+.bb-card.collapsed .bb-card-body { display: none; }
+.bb-card.collapsed .bb-card-chevron { transform: rotate(-90deg); }
+.bb-card-body { padding: 12px; }
+
+/* ── Price mode selector ── */
+.price-mode-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.price-mode-row label {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg2);
+  cursor: pointer;
+}
+.price-mode-row input[type="radio"] { accent-color: var(--accent); }
+.sx-price-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 120px;
+  height: 30px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 0 10px;
+}
+.sx-price-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--fg3);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+.sx-price-value {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.sx-cur-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 120px;
+  height: 30px;
+}
+.sx-cur-input {
+  width: 100%; height: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 0 34px 0 10px;
+  outline: none;
+  transition: border-color .15s;
+}
+.sx-cur-input:focus { border-color: var(--accent); }
+.sx-drag-handle {
+  position: absolute;
+  right: 3px; top: 50%;
+  width: 24px; height: 24px;
+  transform: translateY(-50%);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--fg3);
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+  transition: color .15s;
+}
+.sx-drag-handle:hover { color: var(--accent); }
+
+/* ── Summary cards ── */
+.sx-summary-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.sx-summary-card {
+  flex: 1;
+  min-width: 140px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 14px 16px;
+}
+.sx-summary-card.a { border-left: 3px solid var(--blue); }
+.sx-summary-card.b { border-left: 3px solid #ff80ab; }
+.sx-summary-card-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--fg3);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.sx-summary-card-label.a { color: var(--blue); }
+.sx-summary-card-label.b { color: #ff80ab; }
+.sx-summary-card-acct-name {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  margin-bottom: 4px;
+}
+.sx-summary-card-acct-name.a { color: var(--blue); }
+.sx-summary-card-acct-name.b { color: #ff80ab; }
+.sx-summary-card-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--fg3);
+  margin-bottom: 8px;
+}
+.sx-summary-card-total {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.sx-summary-card-balance {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg3);
+}
+
+/* ── Form fields ── */
+.field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 130px; }
+.field label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--fg3);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.bb-input, .bb-select {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 7px 10px;
+  outline: none;
+  border-radius: 1px;
+  transition: border-color .15s;
+  width: 100%;
+}
+.bb-input:focus, .bb-select:focus { border-color: var(--accent); }
+.bb-input::placeholder { color: var(--fg3); }
+.bb-select option { background: var(--bg3); color: var(--fg); }
+
+.acct-section {
+  border-left: 3px solid var(--blue);
+  padding-left: 10px;
+  margin-bottom: 12px;
+}
+.acct-section.b { border-left-color: #cc0055; }
+.acct-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 6px;
+  letter-spacing: .06em;
+}
+.acct-section.b .acct-label { color: #cc0055; }
+.acct-note {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg3);
+  margin-top: 4px;
+}
+
+/* ── Buttons ── */
+.bb-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--fg2);
+  cursor: pointer;
+  letter-spacing: .06em;
+  transition: color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.bb-btn:hover { color: var(--fg); border-color: var(--fg2); }
+.bb-btn-primary {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 20px;
+  border: 1px solid var(--accent);
+  background: rgba(255,107,0,.12);
+  color: var(--accent);
+  cursor: pointer;
+  letter-spacing: .08em;
+  transition: background .15s;
+  width: 100%;
+}
+.bb-btn-primary:hover { background: rgba(255,107,0,.2); }
+.bb-btn-danger {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg3);
+  cursor: pointer;
+  letter-spacing: .06em;
+  transition: color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.bb-btn-danger:hover { color: var(--red); border-color: var(--red); }
+
+/* ── Section header (table toggle) ── */
+.sx-section-header {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  padding: 8px 12px;
+  user-select: none;
+  transition: background .1s;
+}
+.sx-section-header:hover { background: var(--bg3); }
+.sx-section-header-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.sx-section-header-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg3);
+}
+
+/* ── Tables ── */
+.sx-table-outer {
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+thead tr {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+th {
+  padding: 6px 8px;
+  text-align: right;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--fg3);
+  border-right: 1px solid var(--border2);
+  white-space: nowrap;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+th:first-child { text-align: left; }
+th:last-child { border-right: none; }
+tbody tr { border-bottom: 1px solid var(--border2); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg3); }
+td {
+  padding: 6px 8px;
+  text-align: right;
+  color: var(--fg2);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+td:first-child { text-align: left; color: var(--fg); }
+.empty-row td { text-align: center; color: var(--fg3); padding: 20px; }
+
+/* ── Chart ── */
+.sx-chart-wrap {
+  padding: 10px;
+  position: relative;
+}
+#sx-range-label {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg3);
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
+
+/* ── Status messages ── */
+.form-error { color: var(--red); font-family: var(--mono); font-size: 11px; margin-bottom: 6px; }
+.form-success { color: var(--green); font-family: var(--mono); font-size: 11px; margin-bottom: 6px; }
+.delete-msg { color: var(--green); font-family: var(--mono); font-size: 11px; }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <a href="index.html" class="topbar-back">AI Tool 모음</a>
+  <span class="topbar-title">SOXL TRACKER</span>
+  <div style="position:relative;">
+    <button class="ver-btn" onclick="toggleVersionPopup(event)">v10.07</button>
+    <div id="versionPopup">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:6px;">CHANGELOG</div>
+      <div><strong>v10.07</strong> · 그래프 nice 단위, 표 접기, 런처 분리</div>
+      <div style="color:var(--fg3);">v08.07 · 초기 출시</div>
+    </div>
+  </div>
+</div>
+
+<div class="st-wrap">
+
+  <!-- Header card -->
+  <div class="bb-card" style="margin-bottom:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="bb-card-tag">SOXL</span>
+        <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--fg);">SOXL Tracker</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="bb-btn" onclick="sxCheckSaved()" style="padding:3px 10px;font-size:10px;">업데이트</button>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--fg3);">최근: <span id="sx-last-update" style="color:var(--fg2);">-</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Price mode -->
+  <div class="price-mode-row">
+    <label><input type="radio" name="sx-pricemode" value="close" checked onchange="sxSetPriceMode('close')"> 종가</label>
+    <label><input type="radio" name="sx-pricemode" value="current" onchange="sxSetPriceMode('current')"> 현재가</label>
+    <div id="sx-close-wrap" class="sx-price-box">
+      <span id="sx-close-date" class="sx-price-badge">-</span>
+      <span id="sx-close-price" class="sx-price-value">-</span>
+    </div>
+    <div id="sx-current-wrap" style="display:none;" class="sx-cur-wrap">
+      <input id="sx-current-input" type="text" inputmode="decimal" placeholder="현재가 입력" oninput="sxOnCurrentPriceInput()" class="sx-cur-input">
+      <div id="sx-current-drag-handle" class="sx-drag-handle" style="touch-action:none;">⇕</div>
+    </div>
+  </div>
+
+  <!-- A/B Summary -->
+  <div class="sx-summary-row">
+    <div class="sx-summary-card a">
+      <div class="sx-summary-card-acct-name a">A계좌</div>
+      <div class="sx-summary-card-sub">전체 매도 가정 누적손익</div>
+      <div class="sx-summary-card-total" id="sx-a-total">-</div>
+      <div class="sx-summary-card-balance">현재 잔고 <span id="sx-a-balance"></span>주</div>
+    </div>
+    <div class="sx-summary-card b">
+      <div class="sx-summary-card-acct-name b">B계좌</div>
+      <div class="sx-summary-card-sub">전체 매도 가정 누적손익</div>
+      <div class="sx-summary-card-total" id="sx-b-total">-</div>
+      <div class="sx-summary-card-balance">현재 잔고 <span id="sx-b-balance"></span>주</div>
+    </div>
+  </div>
+
+  <!-- Trade form -->
+  <div class="bb-card">
+    <div class="bb-card-header" onclick="sxToggleForm()">
+      <div class="bb-card-header-left">
+        <span class="bb-card-tag">TRADE</span>
+        <span class="bb-card-title">새 거래 입력</span>
+      </div>
+      <span class="bb-card-chevron" id="sx-form-chevron">▼</span>
+    </div>
+    <div id="sx-form-body" style="display:none;" class="bb-card-body">
+      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+        <div class="field"><label>날짜 (MM.DD)</label><input id="sx-date" class="bb-input" placeholder="07.23" inputmode="decimal"></div>
+        <div class="field"><label>종가</label><input id="sx-close" class="bb-input" placeholder="예: 160.99" inputmode="decimal"></div>
+      </div>
+      <div class="acct-section">
+        <div class="acct-label">A계좌</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div class="field"><label>거래 유형</label>
+            <select id="sx-a-type" class="bb-select"><option value="none">거래 없음</option><option value="buy">매수</option><option value="sell">매도</option></select>
+          </div>
+          <div class="field"><label>수량</label><input id="sx-a-qty" class="bb-input" placeholder="예: 10" inputmode="numeric"></div>
+        </div>
+        <div class="acct-note">A계좌는 항상 종가에 거래돼요.</div>
+      </div>
+      <div class="acct-section b">
+        <div class="acct-label">B계좌</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div class="field"><label>거래 유형</label>
+            <select id="sx-b-type" class="bb-select"><option value="none">거래 없음</option><option value="buy">매수</option><option value="sell">매도</option></select>
+          </div>
+          <div class="field"><label>수량</label><input id="sx-b-qty" class="bb-input" placeholder="예: 21" inputmode="numeric"></div>
+          <div class="field"><label>거래가 (비우면 종가)</label><input id="sx-b-trade" class="bb-input" placeholder="예: 132.35" inputmode="decimal"></div>
+        </div>
+      </div>
+      <div class="form-error" id="sx-form-error"></div>
+      <div class="form-success" id="sx-form-success"></div>
+      <button class="bb-btn-primary" onclick="sxAddEntry()">추가하기</button>
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
+        <span class="delete-msg" id="sx-delete-msg"></span>
+        <button class="bb-btn-danger" onclick="sxDeleteLast()">마지막 거래 삭제 (A/B 동시)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart: Balance -->
+  <div class="bb-card">
+    <div class="bb-card-header" style="cursor:default;">
+      <div class="bb-card-header-left">
+        <span class="bb-card-tag">CHART</span>
+        <span class="bb-card-title">잔고 수량 추이</span>
+      </div>
+    </div>
+    <div class="sx-chart-wrap">
+      <canvas id="sx-chart-balance" height="220"></canvas>
+      <div id="sx-legend-balance" style="margin-top:8px;text-align:center;"></div>
+    </div>
+  </div>
+
+  <!-- Chart: PnL -->
+  <div class="bb-card">
+    <div class="bb-card-header" style="cursor:default;">
+      <div class="bb-card-header-left">
+        <span class="bb-card-tag">P&L</span>
+        <span class="bb-card-title">전체 매도 가정 누적 실현손익</span>
+      </div>
+    </div>
+    <div class="sx-chart-wrap">
+      <canvas id="sx-chart-pnl" height="220"></canvas>
+      <div id="sx-legend-pnl" style="margin-top:8px;text-align:center;"></div>
+    </div>
+  </div>
+
+  <!-- Chart: Diff -->
+  <div class="bb-card">
+    <div class="bb-card-header" style="cursor:default;">
+      <div class="bb-card-header-left">
+        <span class="bb-card-tag">DIFF</span>
+        <span class="bb-card-title">A-B 수익 차이</span>
+      </div>
+    </div>
+    <div class="sx-chart-wrap">
+      <canvas id="sx-chart-diff" height="220"></canvas>
+      <div id="sx-legend-diff" style="margin-top:8px;text-align:center;"></div>
+    </div>
+  </div>
+
+  <div id="sx-range-label"></div>
+
+  <!-- A Table -->
+  <div>
+    <div class="sx-section-header" onclick="sxToggleTable('a')">
+      <div class="sx-section-header-left" style="display:flex;align-items:center;gap:8px;">
+        <span class="sx-section-header-title" style="color:var(--blue);">A계좌</span>
+        <span class="sx-section-header-meta">이동평균법 기준</span>
+      </div>
+      <span id="sx-a-chevron" class="sx-section-header-meta">▴ 접기</span>
+    </div>
+    <div id="sx-a-table-wrap" class="sx-table-outer">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <table style="min-width:760px;">
+          <thead><tr><th>날짜</th><th>잔고</th><th>거래</th><th>종가</th><th>거래가</th><th>평단</th><th>실현손익</th><th>누적손익</th><th>전체매도가정</th></tr></thead>
+          <tbody id="sx-a-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- B Table -->
+  <div style="margin-top:10px;">
+    <div class="sx-section-header" onclick="sxToggleTable('b')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="sx-section-header-title" style="color:#cc0055;">B계좌</span>
+        <span class="sx-section-header-meta">이동평균법 기준</span>
+      </div>
+      <span id="sx-b-chevron" class="sx-section-header-meta">▴ 접기</span>
+    </div>
+    <div id="sx-b-table-wrap" class="sx-table-outer">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <table style="min-width:760px;">
+          <thead><tr><th>날짜</th><th>잔고</th><th>거래</th><th>종가</th><th>거래가</th><th>평단</th><th>실현손익</th><th>누적손익</th><th>전체매도가정</th></tr></thead>
+          <tbody id="sx-b-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SX_A_KEY = 'soxl-a-data';
+const SX_B_KEY = 'soxl-b-data';
+
+const SX_SEED_A = [
+  { date:"06.23", balance:0,  tx:"+8 (매수)",  close:231.42, trade:231.42, avg:231.42, pnl:null,   cum:0 },
+  { date:"06.24", balance:8,  tx:"+4 (매수)",  close:229.57, trade:229.57, avg:230.80, pnl:null,   cum:0 },
+  { date:"06.25", balance:12, tx:"-10 (매도)", close:252.61, trade:252.61, avg:230.80, pnl:218.10, cum:218.10 },
+  { date:"06.26", balance:2,  tx:"+8 (매수)",  close:215.60, trade:215.60, avg:218.64, pnl:null,   cum:218.10 },
+  { date:"06.29", balance:10, tx:"-8 (매도)",  close:236.52, trade:236.52, avg:218.64, pnl:143.04, cum:361.14 },
+  { date:"06.30", balance:2,  tx:"-2 (매도)",  close:266.71, trade:266.71, avg:null,   pnl:96.14,  cum:457.28 },
+  { date:"07.01", balance:0,  tx:"+6 (매수)",  close:217.55, trade:217.55, avg:217.55, pnl:null,   cum:457.28 },
+  { date:"07.02", balance:6,  tx:"+7 (매수)",  close:181.47, trade:181.47, avg:198.12, pnl:null,   cum:457.28 },
+  { date:"07.06", balance:13, tx:"-7 (매도)",  close:194.65, trade:194.65, avg:198.12, pnl:-24.29, cum:432.99 },
+  { date:"07.07", balance:6,  tx:"+10 (매수)", close:165.28, trade:165.28, avg:177.60, pnl:null,   cum:432.99 },
+  { date:"07.08", balance:16, tx:"-10 (매도)", close:174.82, trade:174.82, avg:177.60, pnl:-27.80, cum:405.19 },
+  { date:"07.09", balance:6,  tx:"-6 (매도)",  close:192.45, trade:192.45, avg:null,   pnl:89.10,  cum:494.29 },
+  { date:"07.10", balance:0,  tx:"+5 (매수)",  close:192.26, trade:192.26, avg:192.26, pnl:null,   cum:494.29 },
+  { date:"07.13", balance:5,  tx:"+10 (매수)", close:165.37, trade:165.37, avg:174.33, pnl:null,   cum:494.29 },
+  { date:"07.14", balance:15, tx:"-10 (매도)", close:176.66, trade:176.66, avg:174.33, pnl:23.30,  cum:517.59 },
+  { date:"07.15", balance:5,  tx:"+12 (매수)", close:165.55, trade:165.55, avg:168.13, pnl:null,   cum:517.59 },
+  { date:"07.16", balance:17, tx:"+12 (매수)", close:142.48, trade:142.48, avg:157.52, pnl:null,   cum:517.59 },
+  { date:"07.17", balance:29, tx:"+16 (매수)", close:135.47, trade:135.47, avg:149.68, pnl:null,   cum:517.59 },
+  { date:"07.20", balance:45, tx:"+8 (매수)",  close:136.81, trade:136.81, avg:147.74, pnl:null,   cum:517.59 },
+  { date:"07.21", balance:53, tx:"-21 (매도)", close:158.54, trade:158.54, avg:147.74, pnl:226.80, cum:744.39 },
+  { date:"07.22", balance:32, tx:"-14 (매도)", close:160.99, trade:160.99, avg:147.74, pnl:185.50, cum:929.89 },
+];
+
+const SX_SEED_B = [
+  { date:"07.14", balance:0,  tx:"+5 (매수)",  close:176.66, trade:176.66, avg:176.66, pnl:null, cum:0 },
+  { date:"07.15", balance:5,  tx:"-",          close:165.55, trade:null,   avg:176.66, pnl:null, cum:0 },
+  { date:"07.16", balance:5,  tx:"-",          close:142.48, trade:null,   avg:176.66, pnl:null, cum:0 },
+  { date:"07.17", balance:5,  tx:"+21 (매수)", close:135.47, trade:132.35, avg:140.87, pnl:null, cum:0 },
+  { date:"07.20", balance:26, tx:"-",          close:136.81, trade:null,   avg:140.87, pnl:null, cum:0 },
+  { date:"07.21", balance:26, tx:"-",          close:158.54, trade:null,   avg:140.87, pnl:null, cum:0 },
+  { date:"07.22", balance:26, tx:"-",          close:160.99, trade:null,   avg:140.87, pnl:null, cum:0 },
+];
+
+let sxA = [], sxB = [];
+let sxFullRows = [];
+let sxRangeStart = 0, sxRangeEnd = null;
+let sxPriceMode = 'close';
+let sxCurrentPrice = null;
+
+function sxParseTxDelta(tx) {
+  if (!tx) return 0;
+  const m = tx.match(/^([+-]\d+)/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+function sxPostBalance(row) {
+  if (!row) return 0;
+  return row.balance + sxParseTxDelta(row.tx);
+}
+function sxLastState(data) {
+  if (!data || data.length === 0) return { balance: 0, avg: null, cum: 0 };
+  const last = data[data.length - 1];
+  const balance = sxPostBalance(last);
+  let avg = null;
+  for (let i = data.length - 1; i >= 0; i--) {
+    const row = data[i];
+    const postBal = sxPostBalance(row);
+    if (row.avg !== null && row.avg !== undefined) { avg = row.avg; break; }
+    if (postBal === 0) { avg = null; break; }
+  }
+  const lastCum = (last.cum !== null && last.cum !== undefined) ? last.cum : 0;
+  return { balance, avg, cum: lastCum };
+}
+
+function sxHypoAt(data, price) {
+  const state = sxLastState(data);
+  if (price === null || price === undefined || isNaN(price) || state.avg === null || !state.balance) {
+    return state.cum;
+  }
+  return Math.round((state.cum + (price - state.avg) * state.balance) * 100) / 100;
+}
+function sxComputeNewRow({ data, date, type, qty, close, trade }) {
+  const prev = sxLastState(data);
+  const preBalance = prev.balance;
+  const closeNum = Number(close);
+  let row = { date, balance: preBalance, close: closeNum, trade: null, avg: null, pnl: null, cum: prev.cum, tx: "-" };
+  if (type === "buy") {
+    const q = Number(qty);
+    const tradePrice = (trade !== null && trade !== undefined && trade !== "") ? Number(trade) : Number(close);
+    row.tx = `+${q} (매수)`;
+    row.trade = tradePrice;
+    const newBalance = preBalance + q;
+    row.avg = (preBalance === 0 || prev.avg === null) ? tradePrice : Math.round(((preBalance * prev.avg + q * tradePrice) / newBalance) * 100) / 100;
+    row.pnl = null;
+    row.cum = prev.cum;
+  } else if (type === "sell") {
+    const q = Number(qty);
+    const tradePrice = (trade !== null && trade !== undefined && trade !== "") ? Number(trade) : Number(close);
+    row.tx = `-${q} (매도)`;
+    row.trade = tradePrice;
+    const newBalance = preBalance - q;
+    row.avg = newBalance > 0 ? prev.avg : null;
+    row.pnl = prev.avg !== null ? Math.round((tradePrice - prev.avg) * q * 100) / 100 : null;
+    row.cum = Math.round((prev.cum + (row.pnl || 0)) * 100) / 100;
+  } else {
+    row.tx = "-";
+    row.trade = null;
+    row.avg = prev.avg;
+    row.pnl = null;
+    row.cum = prev.cum;
+  }
+  return row;
+}
+function sxBuildChartRows(aData, bData) {
+  const allDates = [];
+  const seen = new Set();
+  [...aData, ...bData].forEach((r) => { if (!seen.has(r.date)) { seen.add(r.date); allDates.push(r.date); } });
+  allDates.sort((x, y) => {
+    const [xm, xd] = x.split(".").map(Number);
+    const [ym, yd] = y.split(".").map(Number);
+    return xm !== ym ? xm - ym : xd - yd;
+  });
+  function hypo(data) {
+    const map = {}; let lastAvg = null, lastCum = 0;
+    data.forEach((row) => {
+      if (row.avg !== null && row.avg !== undefined) lastAvg = row.avg;
+      if (row.cum !== null && row.cum !== undefined) lastCum = row.cum;
+      const post = sxPostBalance(row);
+      let h = null;
+      if (row.close !== null && row.close !== undefined && lastAvg !== null && post) h = (row.close - lastAvg) * post;
+      map[row.date] = { balance: post, totalIfSold: h !== null ? lastCum + h : lastCum };
+    });
+    return map;
+  }
+  const aMap = hypo(aData), bMap = hypo(bData);
+  const closeMap = {};
+  aData.forEach((r) => { if (r.close !== null && r.close !== undefined) closeMap[r.date] = r.close; });
+  bData.forEach((r) => { if (closeMap[r.date] === undefined && r.close !== null && r.close !== undefined) closeMap[r.date] = r.close; });
+  return allDates.map((d) => ({
+    date: d,
+    aBalance: aMap[d] ? aMap[d].balance : null,
+    bBalance: bMap[d] ? bMap[d].balance : null,
+    aTotal: aMap[d] ? Math.round(aMap[d].totalIfSold * 100) / 100 : null,
+    bTotal: bMap[d] ? Math.round(bMap[d].totalIfSold * 100) / 100 : null,
+    close: closeMap[d] !== undefined ? closeMap[d] : null,
+  }));
+}
+function sxRecompute(data) {
+  const result = [];
+  data.forEach(row => {
+    const delta = sxParseTxDelta(row.tx);
+    const type = delta > 0 ? 'buy' : (delta < 0 ? 'sell' : 'none');
+    const qty = Math.abs(delta);
+    const tradeForCompute = (row.trade !== null && row.trade !== undefined) ? row.trade : row.close;
+    const newRow = sxComputeNewRow({ data: result, date: row.date, type, qty, close: row.close, trade: tradeForCompute });
+    result.push(newRow);
+  });
+  return result;
+}
+
+function sxLoad() {
+  try { const r = localStorage.getItem(SX_A_KEY); sxA = r ? JSON.parse(r) : JSON.parse(JSON.stringify(SX_SEED_A)); } catch (e) { sxA = JSON.parse(JSON.stringify(SX_SEED_A)); }
+  try { const r = localStorage.getItem(SX_B_KEY); sxB = r ? JSON.parse(r) : JSON.parse(JSON.stringify(SX_SEED_B)); } catch (e) { sxB = JSON.parse(JSON.stringify(SX_SEED_B)); }
+  sxA = sxRecompute(sxA);
+  sxB = sxRecompute(sxB);
+  sxSave();
+}
+function sxSave() {
+  try {
+    localStorage.setItem(SX_A_KEY, JSON.stringify(sxA));
+    localStorage.setItem(SX_B_KEY, JSON.stringify(sxB));
+    return true;
+  } catch (e) { return false; }
+}
+
+function sxCheckSaved() {
+  sxSave();
+  const now = new Date();
+  const y = now.getFullYear(), m = String(now.getMonth() + 1).padStart(2, '0'), d = String(now.getDate()).padStart(2, '0');
+  const dateStr = `${y}.${m}.${d}`;
+  try { localStorage.setItem('soxl-last-checked', dateStr); } catch (e) {}
+  const el = document.getElementById('sx-last-update');
+  if (el) el.textContent = dateStr;
+}
+function sxFmt(n) { if (n === null || n === undefined) return "-"; const s = n > 0 ? "+" : ""; return s + n.toFixed(2); }
+function sxFmtPlain(n) { if (n === null || n === undefined) return "-"; return n.toFixed(2); }
+function sxColor(n) {
+  if (n === null || n === undefined) return 'var(--fg3)';
+  return n > 0 ? 'var(--green)' : n < 0 ? 'var(--red)' : 'var(--fg3)';
+}
+
+function sxNiceRange(vals, forceMinZero) {
+  const nums = vals.filter(v => v !== null && v !== undefined && !isNaN(v));
+  if (!nums.length) return { min: 0, max: 1, step: 1 };
+  let dataMin = Math.min(...nums);
+  let dataMax = Math.max(...nums);
+  if (dataMin === dataMax) { dataMin -= 1; dataMax += 1; }
+  const rawStep = (dataMax - dataMin) / 4;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const norm = rawStep / mag;
+  let step;
+  if (norm <= 1) step = mag;
+  else if (norm <= 2) step = 2 * mag;
+  else if (norm <= 5) step = 5 * mag;
+  else step = 10 * mag;
+  const niceMin = forceMinZero ? 0 : Math.floor(dataMin / step) * step;
+  const niceMax = Math.ceil(dataMax / step) * step;
+  return { min: niceMin, max: niceMax, step };
+}
+function sxNiceNum(v) {
+  if (Math.abs(v) >= 1000) return Math.round(v).toLocaleString();
+  if (Math.abs(v) >= 10) return v.toFixed(1);
+  return v.toFixed(2);
+}
+
+const sxChartInfo = {};
+
+function sxDrawChart(canvasId, legendId, labels, series, opts) {
+  const canvas = document.getElementById(canvasId);
+  const wrap = canvas.parentElement;
+  const cssWidth = wrap.clientWidth - 20;
+  const cssHeight = 220;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.style.width = cssWidth + 'px';
+  canvas.style.height = cssHeight + 'px';
+  canvas.width = Math.max(1, Math.floor(cssWidth * dpr));
+  canvas.height = Math.max(1, Math.floor(cssHeight * dpr));
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const hasRight = series.some(s => s.axis === 'right');
+  const padL = 52, padR = hasRight ? 52 : 14, padT = 10, padB = 20;
+  const plotW = Math.max(10, cssWidth - padL - padR);
+  const plotH = Math.max(10, cssHeight - padT - padB);
+
+  const leftVals = series.filter(s => s.axis !== 'right').flatMap(s => s.data);
+  const rightVals = series.filter(s => s.axis === 'right').flatMap(s => s.data);
+
+  const rNice = hasRight ? sxNiceRange(rightVals, false) : { min: 0, max: 1, step: 1 };
+  const rMin = rNice.min, rMax = rNice.max, rStep = rNice.step;
+
+  const forceZero = opts && opts.leftMin === 0;
+  const lNice = sxNiceRange(leftVals, forceZero);
+  let lMin = lNice.min, lMax = lNice.max, lStep = lNice.step;
+  if (opts && opts.leftMin !== undefined && opts.leftMin !== null) lMin = opts.leftMin;
+
+  function xPos(i) { return padL + (labels.length <= 1 ? plotW / 2 : (plotW * i / (labels.length - 1))); }
+  function yPosLeft(v) { return padT + plotH - ((v - lMin) / (lMax - lMin)) * plotH; }
+  function yPosRight(v) { return padT + plotH - ((v - rMin) / (rMax - rMin)) * plotH; }
+
+  const legendEl = document.getElementById(legendId);
+  if (legendEl) {
+    legendEl.innerHTML = series.map(s => `
+      <span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px;font-size:10px;color:var(--fg2);font-family:'IBM Plex Mono',monospace;">
+        <span style="width:12px;height:0;border-top:2px ${s.dashed ? 'dashed' : 'solid'} ${s.color};display:inline-block;"></span>
+        ${s.label}
+      </span>
+    `).join('');
+  }
+
+  sxChartInfo[canvasId] = { ctx, cssWidth, cssHeight, padL, padT, plotW, plotH, lMin, lMax, lStep, rMin, rMax, rStep, hasRight, xPos, yPosLeft, yPosRight, labels, series, activeIdx: null, opts: opts || {} };
+
+  sxRedraw(canvasId);
+
+  if (!canvas.dataset.sxBound) {
+    canvas.dataset.sxBound = '1';
+    canvas.parentElement.style.position = 'relative';
+
+    const hitArea = canvas.parentElement;
+    hitArea.style.cursor = 'crosshair';
+
+    const findIdx = (clientX) => {
+      const info = sxChartInfo[canvasId];
+      if (!info || !info.labels.length) return null;
+      const rect = canvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const cx = Math.max(info.padL, Math.min(info.padL + info.plotW, x));
+      let idx = 0, minDist = Infinity;
+      for (let i = 0; i < info.labels.length; i++) {
+        const d = Math.abs(info.xPos(i) - cx);
+        if (d < minDist) { minDist = d; idx = i; }
+      }
+      return idx;
+    };
+
+    let touching = false;
+
+    hitArea.addEventListener('mousedown', (e) => {
+      if (e.target.closest('button, a')) return;
+      const idx = findIdx(e.clientX);
+      if (idx !== null) sxSyncActive(idx);
+    });
+    hitArea.addEventListener('mousemove', (e) => {
+      if (e.buttons !== 1 || e.target.closest('button, a')) return;
+      const idx = findIdx(e.clientX);
+      if (idx !== null) sxSyncActive(idx);
+    });
+    hitArea.addEventListener('mouseleave', () => { if (!touching) sxSyncActive(null); });
+
+    const inPlotX = (clientX) => {
+      const info = sxChartInfo[canvasId];
+      if (!info) return false;
+      const rect = canvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      return x >= info.padL && x <= info.padL + info.plotW;
+    };
+
+    hitArea.addEventListener('touchstart', (e) => {
+      if (e.target.closest('button, a') || e.touches.length !== 1) return;
+      if (!inPlotX(e.touches[0].clientX)) return;
+      touching = true;
+      clearTimeout(canvas._sxLeaveTimer);
+      const idx = findIdx(e.touches[0].clientX);
+      if (idx !== null) sxSyncActive(idx);
+    }, { passive: true });
+
+    hitArea.addEventListener('touchmove', (e) => {
+      if (e.touches.length !== 1 || !touching) return;
+      e.preventDefault();
+      const idx = findIdx(e.touches[0].clientX);
+      if (idx !== null) sxSyncActive(idx);
+    }, { passive: false });
+
+    hitArea.addEventListener('touchend', () => {
+      touching = false;
+      clearTimeout(canvas._sxLeaveTimer);
+      canvas._sxLeaveTimer = setTimeout(() => sxSyncActive(null), 3000);
+    });
+  }
+}
+
+const SX_LINKED_CHARTS = ['sx-chart-balance', 'sx-chart-pnl', 'sx-chart-diff'];
+function sxSyncActive(idx) {
+  SX_LINKED_CHARTS.forEach(id => {
+    const info = sxChartInfo[id];
+    if (!info) return;
+    info.activeIdx = idx;
+    sxRedraw(id);
+    const tip = document.getElementById(id + '-tooltip');
+    if (idx === null || idx === undefined) {
+      if (tip) tip.style.display = 'none';
+    } else {
+      sxShowTooltip(id, idx);
+    }
+  });
+}
+
+function sxRedraw(canvasId) {
+  const info = sxChartInfo[canvasId];
+  if (!info) return;
+  const { ctx, cssWidth, cssHeight, padL, padT, plotW, plotH, lMin, lMax, lStep, rMin, rMax, rStep, hasRight, xPos, yPosLeft, yPosRight, labels, series, activeIdx, opts } = info;
+
+  ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+  // Dark chart background
+  ctx.fillStyle = '#141720';
+  ctx.fillRect(padL, padT, plotW, plotH);
+
+  // Subtle border
+  ctx.strokeStyle = '#2a2d38'; ctx.lineWidth = 1;
+  ctx.strokeRect(padL, padT, plotW, plotH);
+
+  ctx.fillStyle = '#556070'; ctx.font = '9px "IBM Plex Mono", monospace';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  const lTicks = [];
+  for (let v = lMin; v <= lMax + lStep * 0.001; v = Math.round((v + lStep) * 1e6) / 1e6) {
+    if (v < lMin - lStep * 0.001) continue;
+    lTicks.push(v);
+  }
+  const lTicksUse = lTicks.length > 8 ? lTicks.filter((_, i) => i % Math.ceil(lTicks.length / 6) === 0 || i === lTicks.length - 1) : lTicks;
+  lTicksUse.forEach(v => {
+    const y = yPosLeft(v);
+    if (y < padT - 2 || y > padT + plotH + 2) return;
+    ctx.strokeStyle = '#1e2230'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
+    ctx.fillStyle = '#556070';
+    ctx.fillText(sxNiceNum(v), padL - 6, y);
+  });
+
+  if (opts && opts.zeroLine && lMin < 0 && lMax > 0) {
+    const zy = yPosLeft(0);
+    ctx.strokeStyle = 'rgba(255,107,0,0.4)'; ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(padL, zy); ctx.lineTo(padL + plotW, zy); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ff6b00'; ctx.font = 'bold 9px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText('0', padL - 6, zy);
+    ctx.fillStyle = '#556070'; ctx.font = '9px "IBM Plex Mono", monospace';
+  }
+
+  if (hasRight) {
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#556070';
+    const rTicks = [];
+    for (let v = rMin; v <= rMax + rStep * 0.001; v = Math.round((v + rStep) * 1e6) / 1e6) {
+      rTicks.push(v);
+    }
+    const rTicksUse = rTicks.length > 8 ? rTicks.filter((_, i) => i % Math.ceil(rTicks.length / 6) === 0 || i === rTicks.length - 1) : rTicks;
+    rTicksUse.forEach(v => {
+      const y = yPosRight(v);
+      if (y < padT - 2 || y > padT + plotH + 2) return;
+      ctx.fillText(sxNiceNum(v), padL + plotW + 6, y);
+    });
+  }
+
+  ctx.fillStyle = '#556070';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const step = Math.max(1, Math.ceil(labels.length / 6));
+  labels.forEach((lab, i) => { if (i % step === 0 || i === labels.length - 1) ctx.fillText(lab, xPos(i), padT + plotH + 6); });
+
+  if (activeIdx !== null && activeIdx !== undefined) {
+    const cx = xPos(activeIdx);
+    ctx.strokeStyle = 'rgba(255,107,0,0.5)'; ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(cx, padT); ctx.lineTo(cx, padT + plotH); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  series.forEach(s => {
+    const yPos = s.axis === 'right' ? yPosRight : yPosLeft;
+    ctx.strokeStyle = s.color; ctx.lineWidth = 2;
+    ctx.setLineDash(s.dashed ? [5, 3] : []);
+    ctx.beginPath();
+    let started = false;
+    s.data.forEach((v, i) => {
+      if (v === null || v === undefined || isNaN(v)) { started = false; return; }
+      const x = xPos(i), y = yPos(v);
+      if (!started) { ctx.moveTo(x, y); started = true; } else { ctx.lineTo(x, y); }
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = s.color;
+    s.data.forEach((v, i) => {
+      if (v === null || v === undefined || isNaN(v)) return;
+      const x = xPos(i), y = yPos(v);
+      const isActive = i === activeIdx;
+      ctx.beginPath(); ctx.arc(x, y, isActive ? 5.5 : 3, 0, Math.PI * 2); ctx.fill();
+      if (isActive) {
+        ctx.save();
+        ctx.strokeStyle = '#0f1318'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(x, y, 5.5, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+      }
+    });
+  });
+}
+
+function sxShowTooltip(canvasId, idx) {
+  const info = sxChartInfo[canvasId];
+  const canvas = document.getElementById(canvasId);
+  const tipId = canvasId + '-tooltip';
+  let tip = document.getElementById(tipId);
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = tipId;
+    tip.style.cssText = 'position:absolute;background:#141720;border:1px solid #2a2d38;border-top:2px solid #ff6b00;padding:8px 12px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:#d0d8e8;pointer-events:none;z-index:50;white-space:nowrap;display:none;';
+    canvas.parentElement.appendChild(tip);
+  }
+  const label = info.labels[idx];
+  let html = `<div style="font-weight:700;color:#ff6b00;margin-bottom:4px;">${label}</div>`;
+  info.series.forEach(s => {
+    const v = s.data[idx];
+    const vStr = (v === null || v === undefined || isNaN(v)) ? '-' : (Number.isInteger(v) ? v : v.toFixed(2));
+    html += `<div style="color:${s.color}">${s.label}: ${vStr}</div>`;
+  });
+  tip.innerHTML = html;
+  const px = info.xPos(idx);
+  const cw = canvas.clientWidth;
+  const tipWidth = 150;
+  let left = px + 14;
+  if (left + tipWidth > cw) left = px - tipWidth - 14;
+  tip.style.left = Math.max(0, left) + 'px';
+  tip.style.top = '8px';
+  tip.style.display = 'block';
+}
+
+function renderSoxl() {
+  const fullRows = sxBuildChartRows(sxA, sxB);
+  sxFullRows = fullRows;
+
+  if (sxRangeEnd === null || sxRangeEnd > fullRows.length - 1) sxRangeEnd = fullRows.length - 1;
+  if (sxRangeStart > sxRangeEnd) sxRangeStart = sxRangeEnd;
+  if (sxRangeStart < 0) sxRangeStart = 0;
+
+  const last = fullRows.length ? fullRows[fullRows.length - 1] : { aTotal: null, bTotal: null, aBalance: null, bBalance: null, date: "-" };
+
+  document.getElementById('sx-last-update').textContent = last.date;
+  sxUpdateCloseDisplay();
+
+  const lastClose = fullRows.length ? fullRows[fullRows.length - 1].close : null;
+  const price = sxPriceMode === 'current' ? sxCurrentPrice : lastClose;
+  const aStateNow = sxLastState(sxA);
+  const bStateNow = sxLastState(sxB);
+  const aTotalNow = sxHypoAt(sxA, price);
+  const bTotalNow = sxHypoAt(sxB, price);
+
+  const aTotalEl = document.getElementById('sx-a-total');
+  aTotalEl.textContent = sxFmt(aTotalNow); aTotalEl.style.color = sxColor(aTotalNow);
+  const bTotalEl = document.getElementById('sx-b-total');
+  bTotalEl.textContent = sxFmt(bTotalNow); bTotalEl.style.color = sxColor(bTotalNow);
+  document.getElementById('sx-a-balance').textContent = aStateNow.balance;
+  document.getElementById('sx-b-balance').textContent = bStateNow.balance;
+
+  const rows = fullRows.slice(sxRangeStart, sxRangeEnd + 1);
+  const labels = rows.map(r => r.date);
+
+  // Bloomberg chart colors: blue for A, pink for B, amber/orange for close
+  sxDrawChart('sx-chart-balance', 'sx-legend-balance', labels, [
+    { label: 'A계좌 잔고', data: rows.map(r => r.aBalance), color: '#58a6ff', axis: 'left' },
+    { label: 'B계좌 잔고', data: rows.map(r => r.bBalance), color: '#ff80ab', axis: 'left' },
+    { label: '종가', data: rows.map(r => r.close), color: '#ff6b00', axis: 'right', dashed: true },
+  ], { leftMin: 0 });
+
+  const diffData = rows.map(r => (r.aTotal !== null && r.aTotal !== undefined && r.bTotal !== null && r.bTotal !== undefined)
+    ? Math.round((r.aTotal - r.bTotal) * 100) / 100
+    : null);
+
+  sxDrawChart('sx-chart-pnl', 'sx-legend-pnl', labels, [
+    { label: 'A계좌', data: rows.map(r => r.aTotal), color: '#58a6ff', axis: 'left' },
+    { label: 'B계좌', data: rows.map(r => r.bTotal), color: '#ff80ab', axis: 'left' },
+    { label: '종가', data: rows.map(r => r.close), color: '#ff6b00', axis: 'right', dashed: true },
+  ]);
+
+  sxDrawChart('sx-chart-diff', 'sx-legend-diff', labels, [
+    { label: 'A-B 차이', data: diffData, color: '#a78bfa', axis: 'left' },
+    { label: '종가', data: rows.map(r => r.close), color: '#ff6b00', axis: 'right', dashed: true },
+  ], { zeroLine: true });
+
+  sxUpdateRangeUI();
+  sxBindRangeDrag();
+  sxRenderTable(sxA, 'sx-a-tbody', fullRows, 'a');
+  sxRenderTable(sxB, 'sx-b-tbody', fullRows, 'b');
+}
+
+function sxSetPriceMode(mode) {
+  sxPriceMode = mode;
+  const closeWrap = document.getElementById('sx-close-wrap');
+  const wrap = document.getElementById('sx-current-wrap');
+  const input = document.getElementById('sx-current-input');
+  if (closeWrap) closeWrap.style.display = mode === 'close' ? 'flex' : 'none';
+  if (wrap) wrap.style.display = mode === 'current' ? 'block' : 'none';
+  if (input) {
+    if (mode === 'current' && !input.value && sxCurrentPrice === null) {
+      const lastClose = sxFullRows.length ? sxFullRows[sxFullRows.length - 1].close : null;
+      if (lastClose !== null) { input.value = lastClose; sxCurrentPrice = lastClose; }
+    }
+    if (mode === 'current') sxAttachDragAdjust();
+  }
+  sxUpdateSummary();
+}
+
+function sxUpdateCloseDisplay() {
+  const dateEl = document.getElementById('sx-close-date');
+  const priceEl = document.getElementById('sx-close-price');
+  if (!dateEl || !priceEl) return;
+  if (!sxFullRows.length) { dateEl.textContent = '-'; priceEl.textContent = '-'; return; }
+  const last = sxFullRows[sxFullRows.length - 1];
+  dateEl.textContent = last.date;
+  priceEl.textContent = sxFmtPlain(last.close);
+}
+
+function sxAttachDragAdjust() {
+  const handle = document.getElementById('sx-current-drag-handle');
+  const el = document.getElementById('sx-current-input');
+  if (!handle || !el || handle.dataset.sxDragBound) return;
+  handle.dataset.sxDragBound = '1';
+  let startY = null, startVal = 0, dragging = false;
+  const SENSITIVITY = 0.1;
+  function getVal() { const v = Number(el.value); return isNaN(v) ? 0 : v; }
+  function snap(v) { return Math.round(v * 10) / 10; }
+  function start(y) { startY = y; startVal = getVal(); dragging = true; }
+  function move(y) {
+    if (!dragging) return;
+    const dy = startY - y;
+    let newVal = snap(startVal + Math.round(dy * SENSITIVITY / 0.1) * 0.1);
+    if (newVal < 0) newVal = 0;
+    el.value = newVal.toFixed(1);
+    sxCurrentPrice = newVal;
+    sxUpdateSummary();
+  }
+  function end() { dragging = false; }
+  handle.addEventListener('touchstart', (e) => { if (e.touches[0]) start(e.touches[0].clientY); }, { passive: true });
+  handle.addEventListener('touchmove', (e) => { if (dragging && e.touches[0]) { e.preventDefault(); move(e.touches[0].clientY); } }, { passive: false });
+  handle.addEventListener('touchend', end);
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    start(e.clientY);
+    const mm = (ev) => move(ev.clientY);
+    const mu = () => { end(); document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); };
+    document.addEventListener('mousemove', mm);
+    document.addEventListener('mouseup', mu);
+  });
+}
+
+function sxOnCurrentPriceInput() {
+  const input = document.getElementById('sx-current-input');
+  const v = input ? Number(input.value) : NaN;
+  sxCurrentPrice = (input && input.value !== '' && !isNaN(v)) ? v : null;
+  sxUpdateSummary();
+}
+
+function sxUpdateSummary() {
+  const lastClose = sxFullRows.length ? sxFullRows[sxFullRows.length - 1].close : null;
+  const price = sxPriceMode === 'current' ? sxCurrentPrice : lastClose;
+  const aTotalNow = sxHypoAt(sxA, price);
+  const bTotalNow = sxHypoAt(sxB, price);
+  const aTotalEl = document.getElementById('sx-a-total');
+  if (aTotalEl) { aTotalEl.textContent = sxFmt(aTotalNow); aTotalEl.style.color = sxColor(aTotalNow); }
+  const bTotalEl = document.getElementById('sx-b-total');
+  if (bTotalEl) { bTotalEl.textContent = sxFmt(bTotalNow); bTotalEl.style.color = sxColor(bTotalNow); }
+}
+
+function sxUpdateRangeUI() {
+  const label = document.getElementById('sx-range-label');
+  if (!label || !sxFullRows.length) return;
+  if (sxRangeStart === 0 && sxRangeEnd === sxFullRows.length - 1) {
+    label.textContent = '두 손가락으로 핀치 확대/축소 · 두 손가락 드래그로 이동';
+  } else {
+    label.textContent = `📍 ${sxFullRows[sxRangeStart].date} ~ ${sxFullRows[sxRangeEnd].date}`;
+  }
+}
+
+function sxAttachPinchPan(canvas) {
+  if (canvas.dataset.sxPinchBound) return;
+  canvas.dataset.sxPinchBound = '1';
+  function dist(t1, t2) { return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY); }
+  function midX(t1, t2) { return (t1.clientX + t2.clientX) / 2; }
+  let pinch = null;
+  let rafPending = false;
+  function scheduleRerender() {
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(() => { rafPending = false; renderSoxl(); });
+  }
+  function inPlotArea(clientX, clientY) {
+    const info = sxChartInfo[canvas.id];
+    if (!info) return false;
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left, y = clientY - rect.top;
+    return x >= info.padL && x <= info.padL + info.plotW && y >= info.padT && y <= info.padT + info.plotH;
+  }
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      if (!inPlotArea(e.touches[0].clientX, e.touches[0].clientY) || !inPlotArea(e.touches[1].clientX, e.touches[1].clientY)) { pinch = null; return; }
+      pinch = { startDist: dist(e.touches[0], e.touches[1]), startMid: midX(e.touches[0], e.touches[1]), startRange: [sxRangeStart, sxRangeEnd] };
+      sxSyncActive(null);
+    }
+  }, { passive: true });
+  canvas.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2 && pinch) {
+      const n = (sxFullRows.length - 1) || 1;
+      const curDist = dist(e.touches[0], e.touches[1]);
+      const scale = pinch.startDist > 10 ? (pinch.startDist / Math.max(curDist, 10)) : 1;
+      const [s0, e0] = pinch.startRange;
+      const center = (s0 + e0) / 2;
+      let halfRange = ((e0 - s0) / 2) * scale;
+      halfRange = Math.max(1, Math.min(n / 2, halfRange));
+      const curMid = midX(e.touches[0], e.touches[1]);
+      const dx = curMid - pinch.startMid;
+      const rect = canvas.getBoundingClientRect();
+      const shiftIdx = Math.round((dx / Math.max(rect.width, 1)) * n);
+      const newCenter = center - shiftIdx;
+      let newStart = Math.round(newCenter - halfRange);
+      let newEnd = Math.round(newCenter + halfRange);
+      if (newEnd - newStart < 1) newEnd = newStart + 1;
+      if (newStart < 0) { newEnd -= newStart; newStart = 0; }
+      if (newEnd > n) { newStart -= (newEnd - n); newEnd = n; }
+      newStart = Math.max(0, newStart);
+      newEnd = Math.min(n, newEnd);
+      sxRangeStart = newStart;
+      sxRangeEnd = newEnd;
+      scheduleRerender();
+    }
+  }, { passive: true });
+  canvas.addEventListener('touchend', (e) => { if (e.touches.length < 2) pinch = null; });
+}
+
+function sxBindRangeDrag() {
+  SX_LINKED_CHARTS.forEach(id => {
+    const c = document.getElementById(id);
+    if (c) sxAttachPinchPan(c);
+  });
+}
+
+function sxRenderTable(data, tbodyId, chartRows, which) {
+  const totalsMap = {};
+  chartRows.forEach(r => { totalsMap[r.date] = which === 'a' ? r.aTotal : r.bTotal; });
+  const tbody = document.getElementById(tbodyId);
+  if (!data.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="9">아직 데이터가 없어요.</td></tr>`; return; }
+  tbody.innerHTML = data.map(row => {
+    const txColor = row.tx.startsWith('+') ? 'var(--green)' : (row.tx.startsWith('-') && row.tx !== '-') ? 'var(--red)' : 'var(--fg3)';
+    return `<tr>
+      <td>${row.date}</td>
+      <td>${row.balance}</td>
+      <td style="color:${txColor}">${row.tx}</td>
+      <td>${(row.close !== null && row.close !== undefined) ? sxFmtPlain(row.close) : '-'}</td>
+      <td>${(row.trade !== null && row.trade !== undefined) ? sxFmtPlain(row.trade) : '-'}</td>
+      <td>${(row.avg !== null && row.avg !== undefined) ? sxFmtPlain(row.avg) : '-'}</td>
+      <td style="color:${sxColor(row.pnl)}">${sxFmt(row.pnl)}</td>
+      <td style="color:${sxColor(row.cum)}">${sxFmt(row.cum)}</td>
+      <td style="color:${sxColor(totalsMap[row.date])}">${sxFmt(totalsMap[row.date])}</td>
+    </tr>`;
+  }).join('');
+}
+
+function sxToggleTable(which) {
+  const wrap = document.getElementById('sx-' + which + '-table-wrap');
+  const chevron = document.getElementById('sx-' + which + '-chevron');
+  if (!wrap) return;
+  const isOpen = wrap.style.display !== 'none';
+  wrap.style.display = isOpen ? 'none' : '';
+  chevron.textContent = isOpen ? '▾ 펼치기' : '▴ 접기';
+}
+
+function sxToggleForm() {
+  const body = document.getElementById('sx-form-body');
+  const chevron = document.getElementById('sx-form-chevron');
+  const card = body.closest('.bb-card');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (card) card.classList.toggle('collapsed', isOpen);
+}
+
+function sxAddEntry() {
+  const errEl = document.getElementById('sx-form-error');
+  const okEl = document.getElementById('sx-form-success');
+  errEl.textContent = ''; okEl.textContent = '';
+  const date = document.getElementById('sx-date').value.trim();
+  const close = document.getElementById('sx-close').value.trim();
+  const aType = document.getElementById('sx-a-type').value;
+  const aQty = document.getElementById('sx-a-qty').value.trim();
+  const bType = document.getElementById('sx-b-type').value;
+  const bQty = document.getElementById('sx-b-qty').value.trim();
+  const bTrade = document.getElementById('sx-b-trade').value.trim();
+  if (!/^\d{2}\.\d{2}$/.test(date)) { errEl.textContent = '날짜는 MM.DD 형식으로 입력해주세요 (예: 07.23)'; return; }
+  if (!close || isNaN(Number(close))) { errEl.textContent = '종가를 숫자로 입력해주세요'; return; }
+  if (aType !== 'none' && (!aQty || isNaN(Number(aQty)) || Number(aQty) <= 0)) { errEl.textContent = 'A계좌 수량을 양수로 입력해주세요'; return; }
+  if (bType !== 'none' && (!bQty || isNaN(Number(bQty)) || Number(bQty) <= 0)) { errEl.textContent = 'B계좌 수량을 양수로 입력해주세요'; return; }
+  if (bTrade && isNaN(Number(bTrade))) { errEl.textContent = 'B계좌 거래가를 숫자로 입력해주세요'; return; }
+  try {
+    const aRow = sxComputeNewRow({ data: sxA, date, type: aType, qty: aQty, close, trade: close });
+    const bRow = sxComputeNewRow({ data: sxB, date, type: bType, qty: bQty, close, trade: bTrade || close });
+    sxA = [...sxA, aRow];
+    sxB = [...sxB, bRow];
+    sxSave();
+    renderSoxl();
+    okEl.textContent = `✓ ${date} 데이터가 추가됐어요.`;
+    document.getElementById('sx-date').value = '';
+    document.getElementById('sx-close').value = '';
+    document.getElementById('sx-a-type').value = 'none';
+    document.getElementById('sx-a-qty').value = '';
+    document.getElementById('sx-b-type').value = 'none';
+    document.getElementById('sx-b-qty').value = '';
+    document.getElementById('sx-b-trade').value = '';
+  } catch (e) {
+    errEl.textContent = '오류: ' + (e && e.message ? e.message : String(e));
+  }
+}
+
+function sxDeleteLast() {
+  if (!sxA.length && !sxB.length) return;
+  const removedDate = sxA.length ? sxA[sxA.length - 1].date : (sxB.length ? sxB[sxB.length - 1].date : '');
+  sxA = sxA.slice(0, -1);
+  sxB = sxB.slice(0, -1);
+  sxSave();
+  renderSoxl();
+  document.getElementById('sx-delete-msg').textContent = `✓ ${removedDate || '마지막'} 거래를 A/B 계좌에서 삭제했어요.`;
+}
+
+function toggleVersionPopup(e) {
+  e.stopPropagation();
+  const p = document.getElementById('versionPopup');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  if (p.style.display === 'block') {
+    setTimeout(() => {
+      document.addEventListener('click', function handler() {
+        p.style.display = 'none';
+        document.removeEventListener('click', handler);
+      });
+    }, 10);
+  }
+}
+
+sxLoad();
+renderSoxl();
+
+window.addEventListener('resize', () => { renderSoxl(); });
+</script>
+</body>
+</html>

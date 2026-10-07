@@ -1,0 +1,1125 @@
+<title>축의금 장부</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap">
+<style>
+/* ── Bloomberg Design System ── */
+:root {
+  --bg:      #0f1318;
+  --bg2:     #141720;
+  --bg3:     #1a1f2e;
+  --border:  #252a38;
+  --border2: #1e2230;
+  --fg:      #e8eaf0;
+  --fg2:     #a0a8b8;
+  --fg3:     #556070;
+  --accent:  #ff6b00;
+  --green:   #00c851;
+  --red:     #ff3d3d;
+  --blue:    #58a6ff;
+  --pink:    #ff80ab;
+  --purple:  #a78bfa;
+  --amber:   #d4a853;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:      #f5f6f8;
+    --bg2:     #ffffff;
+    --bg3:     #eef0f4;
+    --border:  #d0d4de;
+    --border2: #e0e3ea;
+    --fg:      #0f1318;
+    --fg2:     #3a4255;
+    --fg3:     #7a8499;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg:      #f5f6f8;
+  --bg2:     #ffffff;
+  --bg3:     #eef0f4;
+  --border:  #d0d4de;
+  --border2: #e0e3ea;
+  --fg:      #0f1318;
+  --fg2:     #3a4255;
+  --fg3:     #7a8499;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+  padding-bottom: 32px;
+}
+
+/* ── Topbar ── */
+.bb-topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: var(--bg2);
+  border-bottom: 3px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 9999;
+}
+.bb-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fg2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  transition: color 0.15s, border-color 0.15s;
+}
+.bb-home-btn:hover { color: var(--accent); border-color: var(--accent); }
+.bb-ver-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--fg3);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: color 0.15s, border-color 0.15s;
+}
+.bb-ver-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── Version popup ── */
+.bb-popup {
+  display: none;
+  position: absolute;
+  right: 0; top: 38px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--accent);
+  width: 240px;
+  z-index: 10000;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.bb-popup-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 12px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.bb-popup-body {
+  padding: 8px 12px 10px;
+  font-size: 11px;
+  line-height: 2;
+  color: var(--fg2);
+}
+.bb-popup-body .ver-cur { color: var(--accent); font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+.bb-popup-body .ver-old { color: var(--fg3); font-family: 'IBM Plex Mono', monospace; }
+
+/* ── Sticky search/filter bar ── */
+.sticky-bar {
+  position: sticky;
+  top: 44px;
+  z-index: 100;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+.sticky-bar-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 10px 16px;
+}
+
+/* ── Search input ── */
+.search-wrap {
+  position: relative;
+  margin-bottom: 8px;
+}
+.search-wrap svg {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  width: 13px; height: 13px; color: var(--fg3); pointer-events: none;
+}
+#searchInput {
+  width: 100%;
+  padding: 7px 32px 7px 30px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+#searchInput::placeholder { color: var(--fg3); }
+#searchInput:focus { border-color: var(--accent); }
+#clearBtn {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  display: none; border: none; background: none; cursor: pointer;
+  font-size: 14px; line-height: 1; color: var(--fg3); padding: 2px;
+}
+#clearBtn:hover { color: var(--fg); }
+
+/* ── Filter buttons ── */
+.filters {
+  display: flex; gap: 4px; overflow-x: auto;
+  margin-bottom: 8px; padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+.filters::-webkit-scrollbar { display: none; }
+.filter-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 500;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--fg2);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: all 0.12s;
+}
+.filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+.filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.count-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--fg3);
+  letter-spacing: 0.02em;
+}
+.count-text strong { color: var(--accent); }
+
+/* ── Sort buttons ── */
+.sort-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 500;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--fg2);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: all 0.12s;
+}
+.sort-btn:hover { border-color: var(--blue); color: var(--blue); }
+.sort-btn.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+/* ── Filter row ── */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 2px;
+  flex-wrap: wrap;
+}
+.filter-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* ── Editable note cell ── */
+.note-input {
+  width: 100%;
+  min-width: 60px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 11px;
+  color: var(--fg3);
+  text-align: center;
+  padding: 0;
+  cursor: text;
+}
+.note-input:focus {
+  color: var(--fg);
+  border-bottom: 1px solid var(--accent);
+}
+.note-input::placeholder { color: var(--fg3); }
+
+/* ── Add row button & form ── */
+.add-row-bar {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+.add-row-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--fg2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.12s;
+}
+.add-row-btn:hover { border-color: var(--green); color: var(--green); }
+
+.add-form-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 9998;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.add-form-overlay.open { display: flex; }
+.add-form-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--green);
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+.add-form-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.add-form-field {
+  margin-bottom: 12px;
+}
+.add-form-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fg3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: block;
+}
+.add-form-input, .add-form-select {
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.add-form-input:focus, .add-form-select:focus { border-color: var(--green); }
+.add-form-select option { background: var(--bg2); }
+.add-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.add-form-cancel {
+  padding: 6px 14px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--fg3);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.add-form-cancel:hover { border-color: var(--fg2); color: var(--fg2); }
+.add-form-submit {
+  padding: 6px 16px;
+  background: var(--green);
+  border: 1px solid var(--green);
+  color: #000;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+.add-form-submit:hover { opacity: 0.85; }
+
+/* ── Main content ── */
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* ── Page header card ── */
+.bb-header-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.bb-header-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--fg);
+  letter-spacing: 0.02em;
+}
+.bb-header-sub {
+  font-size: 11px;
+  color: var(--fg3);
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.03em;
+}
+
+/* ── Stats row ── */
+.bb-stats-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.bb-stat-chip {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  flex: 1;
+  min-width: 120px;
+}
+.bb-stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--fg3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.bb-stat-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+.bb-stat-value.accent { color: var(--accent); }
+
+/* ── Section ── */
+.section { margin-bottom: 20px; }
+.bb-section-header {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  padding: 7px 12px;
+  margin-bottom: 4px;
+}
+.bb-section-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.bb-section-count {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--fg3);
+}
+
+/* ── Table ── */
+.table-outer {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 480px;
+}
+thead tr { background: var(--bg3); border-bottom: 1px solid var(--border); }
+th {
+  white-space: nowrap;
+  padding: 7px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fg3);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border-right: 1px solid var(--border2);
+}
+th:last-child { border-right: none; }
+th:nth-child(1), th:nth-child(3), th:nth-child(4), th:nth-child(6) { text-align: center; }
+th:nth-child(2) { text-align: left; }
+th:nth-child(5) { text-align: right; }
+
+td {
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border2);
+  color: var(--fg2);
+}
+tr:last-child td { border-bottom: none; }
+tr.row-stripe { background: var(--bg3); }
+tbody tr:hover td { background: rgba(255,107,0,0.06); }
+
+.td-no { text-align: center; color: var(--fg3); font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-size: 11px; }
+.td-name { text-align: left; font-weight: 500; color: var(--fg); }
+.td-cat { text-align: center; font-weight: 600; font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+.td-method { text-align: center; color: var(--fg3); font-size: 11px; }
+.td-amt { text-align: right; font-variant-numeric: tabular-nums; font-family: 'IBM Plex Mono', monospace; color: var(--fg); font-size: 12px; }
+.td-note { text-align: center; color: var(--fg3); font-size: 11px; }
+
+.cat-bu { color: var(--blue); }
+.cat-mo { color: var(--pink); }
+.cat-hyung { color: var(--green); }
+.cat-su { color: var(--amber); }
+
+/* ── Empty state ── */
+.empty {
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 60px 0; text-align: center;
+}
+.empty .icon { font-size: 28px; }
+.empty p { font-size: 12px; color: var(--fg3); font-family: 'IBM Plex Mono', monospace; }
+</style>
+
+<!-- Topbar -->
+<div class="bb-topbar">
+  <a href="index.html" class="bb-home-btn">⬛ AI TOOLS</a>
+  <div style="position:relative;">
+    <button class="bb-ver-btn" onclick="toggleVersionPopup(event)">v10.07</button>
+    <div id="versionPopup" class="bb-popup">
+      <div class="bb-popup-title">업데이트 내역</div>
+      <div class="bb-popup-body">
+        <div><span class="ver-cur">v10.07</span> · 런처 분리</div>
+        <div><span class="ver-old">v08.07</span> · 초기 출시</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sticky search/filter bar -->
+<div class="sticky-bar">
+  <div class="sticky-bar-inner">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input id="searchInput" type="text" placeholder="이름으로 검색" autocomplete="off">
+      <button id="clearBtn" aria-label="검색어 지우기">×</button>
+    </div>
+    <div class="filter-row">
+      <div class="filters" id="filters" style="margin-bottom:0;flex:1;min-width:0;">
+        <button class="filter-btn active" data-filter="all">전체</button>
+        <button class="filter-btn" data-filter="method:현장">현장</button>
+        <button class="filter-btn" data-filter="method:입금">입금</button>
+        <button class="filter-btn" data-filter="category:부">부</button>
+        <button class="filter-btn" data-filter="category:모">모</button>
+        <button class="filter-btn" data-filter="category:형">형</button>
+        <button class="filter-btn" data-filter="category:수">수홍</button>
+      </div>
+      <div class="filter-divider"></div>
+      <div style="display:flex;gap:4px;flex-shrink:0;">
+        <button class="sort-btn active" data-sort="none" title="정렬 없음">비정렬</button>
+        <button class="sort-btn" data-sort="asc" title="금액 오름차순">↑ 오름</button>
+        <button class="sort-btn" data-sort="desc" title="금액 내림차순">↓ 내림</button>
+      </div>
+    </div>
+    <div class="count-text">총 <strong id="countNum">0</strong>명</div>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="bb-header-card">
+    <div>
+      <div class="bb-header-title">💒 축의금 장부</div>
+      <div class="bb-header-sub">WEDDING GIFT LEDGER</div>
+    </div>
+    <div id="totalDisplay" class="bb-header-sub" style="text-align:right;"></div>
+  </div>
+
+  <div class="bb-stats-row" id="statsRow"></div>
+
+  <div class="section" id="onsiteSection">
+    <div class="bb-section-header">
+      <span class="bb-section-title">📍 현장</span>
+      <span class="bb-section-count" id="onsiteCount"></span>
+    </div>
+    <div class="table-outer">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>No.</th><th>이름</th><th>구분</th><th>수령방식</th><th>금액</th><th>비고</th></tr>
+          </thead>
+          <tbody id="onsiteBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="transferSection">
+    <div class="bb-section-header">
+      <span class="bb-section-title">💳 입금</span>
+      <span class="bb-section-count" id="transferCount"></span>
+    </div>
+    <div class="table-outer">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>No.</th><th>이름</th><th>구분</th><th>수령방식</th><th>금액</th><th>비고</th></tr>
+          </thead>
+          <tbody id="transferBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty" id="emptyState">
+    <div class="icon">🔍</div>
+    <p>검색 결과가 없습니다</p>
+  </div>
+
+  <div class="add-row-bar">
+    <button class="add-row-btn" onclick="openAddForm()">＋ 새 행 추가</button>
+  </div>
+</div>
+
+<!-- Add row modal -->
+<div class="add-form-overlay" id="addFormOverlay" onclick="handleOverlayClick(event)">
+  <div class="add-form-box">
+    <div class="add-form-title">＋ 새 행 추가</div>
+    <div class="add-form-field">
+      <label class="add-form-label">이름</label>
+      <input class="add-form-input" id="af-name" type="text" placeholder="이름 입력" autocomplete="off">
+    </div>
+    <div class="add-form-field">
+      <label class="add-form-label">구분</label>
+      <select class="add-form-select" id="af-cat">
+        <option value="부">부</option>
+        <option value="모">모</option>
+        <option value="형">형</option>
+        <option value="수">수홍</option>
+      </select>
+    </div>
+    <div class="add-form-field">
+      <label class="add-form-label">수령방식</label>
+      <select class="add-form-select" id="af-method">
+        <option value="현장">현장</option>
+        <option value="입금">입금</option>
+      </select>
+    </div>
+    <div class="add-form-field">
+      <label class="add-form-label">금액 (원)</label>
+      <input class="add-form-input" id="af-amt" type="number" placeholder="예: 100000" min="0" step="10000">
+    </div>
+    <div class="add-form-field">
+      <label class="add-form-label">비고</label>
+      <input class="add-form-input" id="af-note" type="text" placeholder="선택 입력" autocomplete="off">
+    </div>
+    <div class="add-form-actions">
+      <button class="add-form-cancel" onclick="closeAddForm()">취소</button>
+      <button class="add-form-submit" onclick="submitAddForm()">추가</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {n:1,name:'김다남',cat:'모',method:'현장',amt:100000,note:''},
+  {n:2,name:'한미영',cat:'모',method:'현장',amt:100000,note:''},
+  {n:3,name:'이춘분',cat:'모',method:'현장',amt:100000,note:''},
+  {n:4,name:'임미선',cat:'모',method:'현장',amt:100000,note:''},
+  {n:5,name:'무궁화',cat:'모',method:'현장',amt:100000,note:''},
+  {n:6,name:'심준형',cat:'수',method:'현장',amt:100000,note:''},
+  {n:7,name:'이호준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:8,name:'박금숙',cat:'모',method:'현장',amt:100000,note:''},
+  {n:9,name:'고영민',cat:'수',method:'현장',amt:100000,note:''},
+  {n:10,name:'김윤기',cat:'모',method:'현장',amt:50000,note:''},
+  {n:11,name:'김석영',cat:'수',method:'현장',amt:100000,note:''},
+  {n:12,name:'박병성',cat:'부',method:'현장',amt:100000,note:''},
+  {n:13,name:'조균행',cat:'모',method:'현장',amt:100000,note:''},
+  {n:14,name:'박병준',cat:'부',method:'현장',amt:100000,note:''},
+  {n:15,name:'박찬이',cat:'수',method:'현장',amt:150000,note:''},
+  {n:16,name:'최종우',cat:'수',method:'현장',amt:150000,note:''},
+  {n:17,name:'박현주',cat:'수',method:'현장',amt:150000,note:''},
+  {n:18,name:'곽희영',cat:'수',method:'현장',amt:100000,note:''},
+  {n:19,name:'이주은',cat:'수',method:'현장',amt:100000,note:''},
+  {n:20,name:'최승욱',cat:'형',method:'현장',amt:100000,note:''},
+  {n:21,name:'신재욱',cat:'수',method:'현장',amt:100000,note:''},
+  {n:22,name:'이동훈',cat:'수',method:'현장',amt:100000,note:''},
+  {n:23,name:'배형준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:24,name:'박창희',cat:'부',method:'현장',amt:150000,note:''},
+  {n:25,name:'박수정 이한수',cat:'부',method:'현장',amt:150000,note:''},
+  {n:26,name:'박준역',cat:'부',method:'현장',amt:100000,note:''},
+  {n:27,name:'박병조',cat:'부',method:'현장',amt:500000,note:''},
+  {n:28,name:'박종근',cat:'모',method:'현장',amt:300000,note:'?'},
+  {n:29,name:'정경남',cat:'부',method:'현장',amt:500000,note:''},
+  {n:30,name:'박병영',cat:'부',method:'현장',amt:300000,note:''},
+  {n:31,name:'하창수',cat:'부',method:'현장',amt:200000,note:''},
+  {n:32,name:'이재우',cat:'수',method:'현장',amt:100000,note:''},
+  {n:33,name:'이승희',cat:'수',method:'현장',amt:200000,note:''},
+  {n:34,name:'정효영',cat:'수',method:'현장',amt:200000,note:''},
+  {n:35,name:'유민지',cat:'수',method:'현장',amt:100000,note:''},
+  {n:36,name:'오윤환',cat:'수',method:'현장',amt:100000,note:''},
+  {n:37,name:'백정훈',cat:'수',method:'현장',amt:200000,note:''},
+  {n:38,name:'박재령',cat:'수',method:'현장',amt:50000,note:''},
+  {n:39,name:'서유현',cat:'부',method:'현장',amt:100000,note:''},
+  {n:40,name:'박성범',cat:'부',method:'현장',amt:100000,note:''},
+  {n:41,name:'박태호',cat:'부',method:'현장',amt:150000,note:''},
+  {n:42,name:'한진현',cat:'수',method:'현장',amt:200000,note:''},
+  {n:43,name:'장효정',cat:'수',method:'현장',amt:100000,note:''},
+  {n:44,name:'조혁제',cat:'수',method:'현장',amt:50000,note:''},
+  {n:45,name:'손민주',cat:'수',method:'현장',amt:70000,note:''},
+  {n:46,name:'남희재 이민주',cat:'수',method:'현장',amt:200000,note:''},
+  {n:47,name:'김은영',cat:'모',method:'현장',amt:100000,note:''},
+  {n:48,name:'이해숙',cat:'모',method:'현장',amt:100000,note:''},
+  {n:49,name:'차현우',cat:'수',method:'현장',amt:100000,note:''},
+  {n:50,name:'박기선',cat:'부',method:'현장',amt:100000,note:''},
+  {n:51,name:'최희수',cat:'부',method:'현장',amt:100000,note:''},
+  {n:52,name:'박병용',cat:'부',method:'현장',amt:100000,note:''},
+  {n:53,name:'박용',cat:'부',method:'현장',amt:100000,note:'?'},
+  {n:54,name:'이지형',cat:'형',method:'현장',amt:200000,note:'?'},
+  {n:55,name:'유승철',cat:'수',method:'현장',amt:100000,note:''},
+  {n:56,name:'이강혁',cat:'수',method:'현장',amt:100000,note:''},
+  {n:57,name:'박지훈',cat:'수',method:'현장',amt:100000,note:''},
+  {n:58,name:'허태무',cat:'부',method:'현장',amt:100000,note:''},
+  {n:59,name:'김장용',cat:'모',method:'현장',amt:200000,note:''},
+  {n:60,name:'김선우',cat:'모',method:'현장',amt:100000,note:''},
+  {n:61,name:'조창민',cat:'부',method:'현장',amt:200000,note:''},
+  {n:62,name:'김생환',cat:'부',method:'현장',amt:100000,note:''},
+  {n:63,name:'조옥순',cat:'부',method:'현장',amt:100000,note:''},
+  {n:64,name:'정우석',cat:'수',method:'현장',amt:100000,note:''},
+  {n:65,name:'김성현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:66,name:'허인무',cat:'부',method:'현장',amt:100000,note:''},
+  {n:67,name:'정훈',cat:'수',method:'현장',amt:100000,note:''},
+  {n:68,name:'박선규',cat:'부',method:'현장',amt:100000,note:''},
+  {n:69,name:'박봉기',cat:'부',method:'현장',amt:100000,note:''},
+  {n:70,name:'윤현민',cat:'수',method:'현장',amt:100000,note:''},
+  {n:71,name:'서종권',cat:'부',method:'현장',amt:100000,note:''},
+  {n:72,name:'김종복',cat:'부',method:'현장',amt:100000,note:''},
+  {n:73,name:'박병원',cat:'부',method:'현장',amt:150000,note:''},
+  {n:74,name:'김현철',cat:'수',method:'현장',amt:150000,note:''},
+  {n:75,name:'김임태',cat:'부',method:'현장',amt:100000,note:''},
+  {n:76,name:'박꽃나래',cat:'부',method:'현장',amt:100000,note:''},
+  {n:77,name:'육인자',cat:'부',method:'현장',amt:300000,note:''},
+  {n:78,name:'류석진',cat:'모',method:'현장',amt:500000,note:''},
+  {n:79,name:'이종윤',cat:'수',method:'현장',amt:100000,note:''},
+  {n:80,name:'정혜정',cat:'모',method:'현장',amt:100000,note:''},
+  {n:81,name:'정지현',cat:'모',method:'현장',amt:100000,note:''},
+  {n:82,name:'정혜진',cat:'모',method:'현장',amt:100000,note:''},
+  {n:83,name:'정재훈',cat:'모',method:'현장',amt:300000,note:''},
+  {n:84,name:'김문주',cat:'모',method:'현장',amt:100000,note:''},
+  {n:85,name:'박영남',cat:'부',method:'현장',amt:100000,note:''},
+  {n:86,name:'송동수',cat:'수',method:'현장',amt:100000,note:''},
+  {n:87,name:'이선아',cat:'수',method:'현장',amt:100000,note:''},
+  {n:88,name:'박시은',cat:'수',method:'현장',amt:100000,note:''},
+  {n:89,name:'송찬양',cat:'수',method:'현장',amt:100000,note:''},
+  {n:90,name:'신소빈',cat:'수',method:'현장',amt:100000,note:''},
+  {n:91,name:'서재윤',cat:'수',method:'현장',amt:100000,note:''},
+  {n:92,name:'조규현',cat:'부',method:'현장',amt:300000,note:''},
+  {n:93,name:'전문배',cat:'수',method:'현장',amt:100000,note:''},
+  {n:94,name:'유광호',cat:'모',method:'현장',amt:200000,note:''},
+  {n:95,name:'김성철',cat:'수',method:'현장',amt:150000,note:''},
+  {n:96,name:'최환영 이미식',cat:'모',method:'현장',amt:200000,note:'?'},
+  {n:97,name:'신호범',cat:'수',method:'현장',amt:100000,note:''},
+  {n:98,name:'문민준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:99,name:'이성구',cat:'수',method:'현장',amt:100000,note:''},
+  {n:100,name:'이동욱',cat:'수',method:'현장',amt:100000,note:''},
+  {n:101,name:'노규령',cat:'수',method:'현장',amt:100000,note:''},
+  {n:102,name:'이상연',cat:'수',method:'현장',amt:100000,note:''},
+  {n:103,name:'추현수',cat:'수',method:'현장',amt:200000,note:''},
+  {n:104,name:'이예린',cat:'수',method:'현장',amt:50000,note:''},
+  {n:105,name:'전현익',cat:'수',method:'현장',amt:100000,note:''},
+  {n:106,name:'신정민',cat:'수',method:'현장',amt:100000,note:''},
+  {n:107,name:'김기태',cat:'부',method:'현장',amt:100000,note:''},
+  {n:108,name:'김나영',cat:'수',method:'현장',amt:100000,note:''},
+  {n:109,name:'최은기',cat:'모',method:'현장',amt:100000,note:''},
+  {n:110,name:'최은정',cat:'모',method:'현장',amt:100000,note:''},
+  {n:111,name:'백형국 정환숙',cat:'부',method:'현장',amt:200000,note:''},
+  {n:112,name:'박병열',cat:'부',method:'현장',amt:100000,note:''},
+  {n:113,name:'유회철',cat:'수',method:'현장',amt:50000,note:''},
+  {n:114,name:'이현구',cat:'수',method:'현장',amt:100000,note:''},
+  {n:115,name:'조순옥 호연',cat:'형',method:'현장',amt:100000,note:'?'},
+  {n:116,name:'류석규',cat:'모',method:'현장',amt:500000,note:''},
+  {n:117,name:'안젤라',cat:'모',method:'현장',amt:200000,note:''},
+  {n:118,name:'여승연',cat:'수',method:'현장',amt:100000,note:''},
+  {n:119,name:'강동석',cat:'수',method:'현장',amt:100000,note:''},
+  {n:120,name:'오자영',cat:'부',method:'현장',amt:100000,note:''},
+  {n:121,name:'정일우',cat:'수',method:'현장',amt:200000,note:''},
+  {n:122,name:'김영준',cat:'수',method:'현장',amt:200000,note:''},
+  {n:123,name:'김정화 정진용',cat:'모',method:'현장',amt:100000,note:''},
+  {n:124,name:'서영준',cat:'부',method:'현장',amt:100000,note:''},
+  {n:125,name:'정환종',cat:'부',method:'현장',amt:200000,note:''},
+  {n:126,name:'연제원',cat:'형',method:'현장',amt:100000,note:'?'},
+  {n:127,name:'김명오',cat:'모',method:'현장',amt:200000,note:''},
+  {n:128,name:'류현 호준',cat:'모',method:'현장',amt:300000,note:''},
+  {n:129,name:'조용훈',cat:'형',method:'현장',amt:200000,note:''},
+  {n:130,name:'정수영',cat:'형',method:'현장',amt:200000,note:''},
+  {n:131,name:'서장원',cat:'형',method:'현장',amt:100000,note:''},
+  {n:132,name:'송해욱',cat:'형',method:'현장',amt:200000,note:''},
+  {n:133,name:'이나윤',cat:'수',method:'현장',amt:100000,note:''},
+  {n:134,name:'류석홍',cat:'모',method:'현장',amt:300000,note:''},
+  {n:135,name:'박병삼',cat:'부',method:'현장',amt:100000,note:'?'},
+  {n:136,name:'수창친구들',cat:'형',method:'현장',amt:300000,note:''},
+  {n:137,name:'김태환',cat:'형',method:'현장',amt:100000,note:''},
+  {n:138,name:'류원호',cat:'모',method:'현장',amt:500000,note:''},
+  {n:139,name:'류승호',cat:'모',method:'현장',amt:500000,note:''},
+  {n:140,name:'정경미',cat:'부',method:'현장',amt:100000,note:''},
+  {n:141,name:'홍기현',cat:'부',method:'현장',amt:100000,note:''},
+  {n:142,name:'전용욱',cat:'수',method:'현장',amt:100000,note:''},
+  {n:143,name:'이승훈',cat:'부',method:'현장',amt:200000,note:''},
+  {n:144,name:'최용현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:145,name:'김공순 김다원',cat:'형',method:'현장',amt:500000,note:''},
+  {n:146,name:'김대원 황상아',cat:'수',method:'현장',amt:300000,note:''},
+  {n:147,name:'원진우',cat:'수',method:'현장',amt:100000,note:''},
+  {n:148,name:'박상현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:149,name:'남민우',cat:'수',method:'현장',amt:50000,note:''},
+  {n:150,name:'이민교',cat:'수',method:'현장',amt:200000,note:''},
+  {n:151,name:'이량',cat:'수',method:'현장',amt:50000,note:''},
+  {n:152,name:'김찬영',cat:'수',method:'현장',amt:100000,note:''},
+  {n:153,name:'김현민',cat:'수',method:'현장',amt:100000,note:''},
+  {n:154,name:'양경',cat:'부',method:'현장',amt:100000,note:''},
+  {n:155,name:'라연열',cat:'부',method:'현장',amt:100000,note:''},
+  {n:156,name:'한진용',cat:'수',method:'현장',amt:50000,note:''},
+  {n:157,name:'강결',cat:'수',method:'현장',amt:100000,note:''},
+  {n:158,name:'박찬현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:159,name:'주민호',cat:'수',method:'현장',amt:150000,note:''},
+  {n:160,name:'전보현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:161,name:'조현희',cat:'수',method:'현장',amt:50000,note:''},
+  {n:162,name:'윤석민',cat:'수',method:'현장',amt:100000,note:''},
+  {n:163,name:'박기역',cat:'부',method:'현장',amt:100000,note:''},
+  {n:164,name:'권하경',cat:'수',method:'현장',amt:100000,note:''},
+  {n:165,name:'김상준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:166,name:'박정준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:167,name:'송은석',cat:'수',method:'현장',amt:100000,note:''},
+  {n:168,name:'이한수 태을',cat:'부',method:'현장',amt:50000,note:''},
+  {n:169,name:'권오현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:170,name:'조우영',cat:'수',method:'현장',amt:100000,note:''},
+  {n:171,name:'김인권 이기민',cat:'수',method:'현장',amt:200000,note:''},
+  {n:172,name:'홍정호',cat:'수',method:'현장',amt:50000,note:''},
+  {n:173,name:'정종욱',cat:'형',method:'현장',amt:100000,note:'?'},
+  {n:174,name:'이영기',cat:'형',method:'현장',amt:200000,note:''},
+  {n:175,name:'정우익',cat:'수',method:'현장',amt:100000,note:''},
+  {n:176,name:'이성준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:177,name:'류민호',cat:'모',method:'현장',amt:200000,note:''},
+  {n:178,name:'이상화',cat:'수',method:'현장',amt:100000,note:''},
+  {n:179,name:'류젬마 최우진',cat:'모',method:'현장',amt:300000,note:''},
+  {n:180,name:'3외삼촌',cat:'수',method:'현장',amt:300000,note:''},
+  {n:181,name:'송화준',cat:'수',method:'현장',amt:400000,note:''},
+  {n:182,name:'박현준',cat:'수',method:'현장',amt:300000,note:''},
+  {n:183,name:'정영석',cat:'수',method:'현장',amt:300000,note:''},
+  {n:184,name:'정종학',cat:'수',method:'현장',amt:300000,note:''},
+  {n:185,name:'고준석',cat:'수',method:'현장',amt:400000,note:''},
+  {n:186,name:'안동휘',cat:'수',method:'현장',amt:300000,note:''},
+  {n:201,name:'우동수',cat:'수',method:'입금',amt:100000,note:''},
+  {n:202,name:'임재성',cat:'수',method:'입금',amt:50000,note:''},
+  {n:203,name:'손영웅',cat:'수',method:'입금',amt:100000,note:''},
+  {n:204,name:'박세근',cat:'수',method:'입금',amt:200000,note:''},
+  {n:205,name:'김수진',cat:'수',method:'입금',amt:50000,note:''},
+  {n:206,name:'이미림',cat:'수',method:'입금',amt:100000,note:''},
+  {n:207,name:'이석헌',cat:'수',method:'입금',amt:50000,note:''},
+  {n:208,name:'김도원',cat:'수',method:'입금',amt:50000,note:''},
+  {n:209,name:'조원진',cat:'수',method:'입금',amt:100000,note:''},
+  {n:210,name:'조금남',cat:'수',method:'입금',amt:50000,note:''},
+  {n:211,name:'김현정',cat:'수',method:'입금',amt:50000,note:''},
+  {n:212,name:'박진아',cat:'수',method:'입금',amt:100000,note:''},
+  {n:213,name:'강해서',cat:'수',method:'입금',amt:100000,note:''},
+  {n:214,name:'이재성',cat:'수',method:'입금',amt:100000,note:''},
+  {n:215,name:'정재현',cat:'수',method:'입금',amt:100000,note:''},
+  {n:216,name:'허수재',cat:'수',method:'입금',amt:50000,note:''},
+  {n:217,name:'전찬호',cat:'수',method:'입금',amt:100000,note:''},
+  {n:218,name:'김주리',cat:'수',method:'입금',amt:50000,note:''},
+  {n:219,name:'김유민',cat:'수',method:'입금',amt:50000,note:''},
+  {n:220,name:'손지훈',cat:'수',method:'입금',amt:50000,note:''},
+  {n:221,name:'권남용',cat:'수',method:'입금',amt:50000,note:''},
+  {n:222,name:'김형준',cat:'수',method:'입금',amt:50000,note:''},
+  {n:223,name:'송정우',cat:'수',method:'입금',amt:100000,note:''},
+  {n:224,name:'김지민',cat:'수',method:'입금',amt:50000,note:''},
+  {n:225,name:'최혜빈',cat:'수',method:'입금',amt:100000,note:''},
+  {n:226,name:'최혜성',cat:'수',method:'입금',amt:100000,note:''},
+  {n:227,name:'홍현희',cat:'수',method:'입금',amt:150000,note:''},
+  {n:228,name:'정원재',cat:'수',method:'입금',amt:100000,note:''},
+  {n:229,name:'김채수',cat:'수',method:'입금',amt:50000,note:''},
+  {n:230,name:'김종연',cat:'수',method:'입금',amt:100000,note:''},
+  {n:231,name:'박진성',cat:'수',method:'입금',amt:50000,note:''},
+  {n:232,name:'남종원',cat:'수',method:'입금',amt:100000,note:''},
+  {n:233,name:'김기재',cat:'수',method:'입금',amt:50000,note:''},
+  {n:234,name:'유진혁',cat:'수',method:'입금',amt:50000,note:''},
+  {n:235,name:'이민형',cat:'수',method:'입금',amt:100000,note:''},
+  {n:236,name:'최현수',cat:'수',method:'입금',amt:50000,note:''},
+  {n:237,name:'송정훈',cat:'수',method:'입금',amt:100000,note:''},
+  {n:238,name:'구성령',cat:'수',method:'입금',amt:100000,note:''},
+  {n:239,name:'안두현',cat:'수',method:'입금',amt:50000,note:''},
+  {n:240,name:'이영기',cat:'수',method:'입금',amt:50000,note:''},
+  {n:241,name:'장찬희',cat:'수',method:'입금',amt:50000,note:''},
+  {n:242,name:'이동인',cat:'수',method:'입금',amt:100000,note:''},
+  {n:243,name:'유환',cat:'수',method:'입금',amt:50000,note:''},
+  {n:244,name:'우주원',cat:'수',method:'입금',amt:100000,note:''},
+  {n:245,name:'이상훈',cat:'수',method:'입금',amt:50000,note:''},
+  {n:246,name:'이창훈',cat:'수',method:'입금',amt:50000,note:''},
+  {n:247,name:'민지원',cat:'수',method:'입금',amt:100000,note:''},
+  {n:248,name:'김상호',cat:'수',method:'입금',amt:100000,note:''},
+  {n:249,name:'이인희',cat:'수',method:'입금',amt:50000,note:''},
+  {n:250,name:'김대중',cat:'수',method:'입금',amt:100000,note:''},
+  {n:251,name:'박정음',cat:'수',method:'입금',amt:50000,note:''},
+  {n:252,name:'한혁진',cat:'수',method:'입금',amt:70000,note:''}
+];
+
+const CATEGORY_LABEL = { '부': '부', '모': '모', '형': '형', '수': '수홍' };
+const CATEGORY_CLASS = { '부': 'cat-bu', '모': 'cat-mo', '형': 'cat-hyung', '수': 'cat-su' };
+
+let query = '';
+let filter = 'all';
+let sortMode = 'none'; // 'none' | 'asc' | 'desc'
+
+// Load persisted DATA from localStorage if available
+const WEDDING_KEY = 'wedding-ledger-v1';
+(function() {
+  try {
+    var saved = localStorage.getItem(WEDDING_KEY);
+    if (saved) {
+      var parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        DATA.length = 0;
+        parsed.forEach(function(r) { DATA.push(r); });
+      }
+    }
+  } catch(e) {}
+})();
+
+function saveData() {
+  try { localStorage.setItem(WEDDING_KEY, JSON.stringify(DATA)); } catch(e) {}
+}
+
+function fmt(n) { return n.toLocaleString('ko-KR') + '원'; }
+function fmtM(n) { return (n / 10000).toLocaleString('ko-KR') + '만원'; }
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+  });
+}
+
+function renderRows(rows) {
+  return rows.map(function(r, i) {
+    var rowClass = i % 2 === 0 ? 'row-white' : 'row-stripe';
+    var catClass = CATEGORY_CLASS[r.cat] || '';
+    var catLabel = CATEGORY_LABEL[r.cat] || r.cat;
+    // data-n used as key to find original item
+    return '<tr class="' + rowClass + '">' +
+      '<td class="td-no">' + r.n + '</td>' +
+      '<td class="td-name">' + escapeHtml(r.name) + '</td>' +
+      '<td class="td-cat ' + catClass + '">' + catLabel + '</td>' +
+      '<td class="td-method">' + r.method + '</td>' +
+      '<td class="td-amt">' + fmt(r.amt) + '</td>' +
+      '<td class="td-note"><input class="note-input" data-n="' + r.n + '" value="' + escapeHtml(r.note || '') + '" placeholder="-" maxlength="40"></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function attachNoteListeners(tbodyEl) {
+  tbodyEl.querySelectorAll('.note-input').forEach(function(input) {
+    input.addEventListener('change', function() {
+      var n = parseInt(input.getAttribute('data-n'), 10);
+      var item = DATA.find(function(r) { return r.n === n; });
+      if (item) {
+        item.note = input.value;
+        saveData();
+      }
+    });
+  });
+}
+
+function render() {
+  var q = query.trim();
+  var filtered = DATA.filter(function(r) {
+    if (q && r.name.indexOf(q) === -1) return false;
+    if (filter === 'all') return true;
+    var parts = filter.split(':');
+    var type = parts[0], val = parts[1];
+    if (type === 'method') return r.method === val;
+    if (type === 'category') return r.cat === val;
+    return true;
+  });
+
+  // Apply sort
+  if (sortMode === 'asc') {
+    filtered = filtered.slice().sort(function(a, b) { return a.amt - b.amt; });
+  } else if (sortMode === 'desc') {
+    filtered = filtered.slice().sort(function(a, b) { return b.amt - a.amt; });
+  }
+
+  var onsite = filtered.filter(function(r) { return r.method === '현장'; });
+  var transfer = filtered.filter(function(r) { return r.method === '입금'; });
+
+  var total = filtered.reduce(function(s, r) { return s + r.amt; }, 0);
+  var totalAll = DATA.reduce(function(s, r) { return s + r.amt; }, 0);
+
+  document.getElementById('countNum').textContent = filtered.length;
+
+  // Update header total
+  document.getElementById('totalDisplay').innerHTML =
+    '<span style="font-size:10px;color:var(--fg3);letter-spacing:.07em;text-transform:uppercase;display:block;">TOTAL</span>' +
+    '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:16px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums;">' + fmtM(filter === 'all' && !q ? totalAll : total) + '</span>';
+
+  // Stats row
+  var cats = ['부','모','형','수'];
+  var catColors = {'부':'var(--blue)','모':'var(--pink)','형':'var(--green)','수':'var(--amber)'};
+  var catTotals = {};
+  cats.forEach(function(c) {
+    catTotals[c] = DATA.filter(function(r) { return r.cat === c; }).reduce(function(s,r) { return s+r.amt; },0);
+  });
+  document.getElementById('statsRow').innerHTML = cats.map(function(c) {
+    return '<div class="bb-stat-chip">' +
+      '<div class="bb-stat-label" style="color:' + catColors[c] + ';">' + (CATEGORY_LABEL[c]||c) + '</div>' +
+      '<div class="bb-stat-value" style="color:' + catColors[c] + ';">' + fmtM(catTotals[c]) + '</div>' +
+    '</div>';
+  }).join('');
+
+  var onsiteSection = document.getElementById('onsiteSection');
+  if (onsite.length === 0) {
+    onsiteSection.style.display = 'none';
+  } else {
+    onsiteSection.style.display = 'block';
+    document.getElementById('onsiteCount').textContent = onsite.length + '명 · ' + fmtM(onsite.reduce(function(s,r){return s+r.amt;},0));
+    var onsiteBody = document.getElementById('onsiteBody');
+    onsiteBody.innerHTML = renderRows(onsite);
+    attachNoteListeners(onsiteBody);
+  }
+
+  var transferSection = document.getElementById('transferSection');
+  if (transfer.length === 0) {
+    transferSection.style.display = 'none';
+  } else {
+    transferSection.style.display = 'block';
+    document.getElementById('transferCount').textContent = transfer.length + '명 · ' + fmtM(transfer.reduce(function(s,r){return s+r.amt;},0));
+    var transferBody = document.getElementById('transferBody');
+    transferBody.innerHTML = renderRows(transfer);
+    attachNoteListeners(transferBody);
+  }
+
+  document.getElementById('emptyState').style.display = filtered.length === 0 ? 'flex' : 'none';
+}
+
+var searchInput = document.getElementById('searchInput');
+var clearBtn = document.getElementById('clearBtn');
+
+searchInput.addEventListener('input', function(e) {
+  query = e.target.value;
+  clearBtn.style.display = query ? 'block' : 'none';
+  render();
+});
+
+clearBtn.addEventListener('click', function() {
+  query = '';
+  searchInput.value = '';
+  clearBtn.style.display = 'none';
+  render();
+});
+
+document.querySelectorAll('.filter-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    filter = btn.getAttribute('data-filter');
+    document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    render();
+  });
+});
+
+document.querySelectorAll('.sort-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    sortMode = btn.getAttribute('data-sort');
+    document.querySelectorAll('.sort-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    render();
+  });
+});
+
+// Add row form functions
+function openAddForm() {
+  document.getElementById('af-name').value = '';
+  document.getElementById('af-cat').value = '수';
+  document.getElementById('af-method').value = '현장';
+  document.getElementById('af-amt').value = '';
+  document.getElementById('af-note').value = '';
+  document.getElementById('addFormOverlay').classList.add('open');
+  setTimeout(function() { document.getElementById('af-name').focus(); }, 50);
+}
+function closeAddForm() {
+  document.getElementById('addFormOverlay').classList.remove('open');
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('addFormOverlay')) closeAddForm();
+}
+function submitAddForm() {
+  var name = document.getElementById('af-name').value.trim();
+  if (!name) { document.getElementById('af-name').focus(); return; }
+  var amtRaw = parseInt(document.getElementById('af-amt').value, 10);
+  if (isNaN(amtRaw) || amtRaw < 0) { document.getElementById('af-amt').focus(); return; }
+  var maxN = DATA.reduce(function(m, r) { return Math.max(m, r.n); }, 0);
+  DATA.push({
+    n: maxN + 1,
+    name: name,
+    cat: document.getElementById('af-cat').value,
+    method: document.getElementById('af-method').value,
+    amt: amtRaw,
+    note: document.getElementById('af-note').value.trim()
+  });
+  saveData();
+  closeAddForm();
+  render();
+}
+
+render();
+
+function toggleVersionPopup(e) {
+  e.stopPropagation();
+  var p = document.getElementById('versionPopup');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function() {
+  var p = document.getElementById('versionPopup');
+  if (p) p.style.display = 'none';
+});
+</script>

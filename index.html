@@ -1,324 +1,859 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="AI Tool 모음">
-<meta name="theme-color" content="#0e0e14">
-<link rel="manifest" href="launcher-manifest.json">
-<title>AI Tool 모음</title>
-<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<title>AI Tools</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
 :root {
-  --bg: #0e0e14;
-  --surface: #16161f;
-  --surface2: #1c1c2a;
-  --border: rgba(255,255,255,0.07);
-  --text: #f0f0f8;
-  --muted: #6c6c88;
-  --accent: #7c6af7;
-  --accent2: #a78bfa;
+  --bg:     #0f1318;
+  --bg2:    #141720;
+  --bg3:    #1a1f2e;
+  --border: #252a38;
+  --fg:     #e8eaf0;
+  --fg2:    #a0a8b8;
+  --fg3:    #556070;
+  --accent: #ff6b00;
+  --green:  #00c851;
+  --blue:   #58a6ff;
+  --red:    #ff3d3d;
+  --amber:  #d4a853;
+  color-scheme: dark;
 }
-
-html, body {
-  min-height: 100vh;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'IBM Plex Sans KR', sans-serif;
+  font-size: 13px;
   background: var(--bg);
-  color: var(--text);
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  overflow-x: hidden;
-}
-
-/* ── 배경 노이즈/별 패턴 ── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 20% 10%, rgba(124,106,247,0.12) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(167,139,250,0.08) 0%, transparent 40%),
-    radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 100%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.wrap {
-  position: relative;
-  z-index: 1;
+  color: var(--fg);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 0 0 40px;
+  padding-bottom: 32px;
 }
 
-/* ── 헤더 ── */
-.hero {
-  text-align: center;
-  padding: 56px 20px 32px;
-}
-
-.hero-icon {
-  width: 72px;
-  height: 72px;
-  background: linear-gradient(135deg, #7c6af7, #a78bfa);
-  border-radius: 22px;
+/* ── Topbar ── */
+.bb-topbar {
+  position: sticky;
+  top: 0;
+  height: 44px;
+  background: var(--bg2);
+  border-bottom: 3px solid var(--accent);
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  margin: 0 auto 20px;
-  box-shadow: 0 8px 32px rgba(124,106,247,0.4);
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 999;
+  flex-shrink: 0;
 }
-
-.hero-title {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  background: linear-gradient(135deg, #f0f0f8, #a78bfa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 8px;
-}
-
-.hero-sub {
+.bb-logo {
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;
-  color: var(--muted);
-  font-weight: 400;
-  letter-spacing: 0.2px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+.bb-logo span { color: var(--fg3); font-weight: 400; font-size: 10px; margin-left: 8px; letter-spacing: 0.04em; }
+.bb-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bb-backup-status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--fg3);
+  letter-spacing: 0.03em;
+}
+.bb-backup-status.ok { color: var(--green); }
+.bb-backup-status.warn { color: var(--amber); }
+
+/* ── Content ── */
+.content {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  width: 100%;
 }
 
-/* ── 섹션 라벨 ── */
-.section-label {
-  font-size: 11px;
+/* ── Section header ── */
+.bb-section-hd {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 2px;
+  color: var(--fg3);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--muted);
-  padding: 0 24px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
 }
 
-/* ── 앱 그리드 ── */
+/* ── App grid ── */
 .app-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  padding: 0 16px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 24px;
 }
-
 .app-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 20px 18px;
-  text-decoration: none;
-  color: inherit;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.15s ease, border-color 0.2s, box-shadow 0.2s;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  padding: 14px 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
   cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;
 }
-
-.app-card:active {
-  transform: scale(0.97);
+.app-card:hover { border-color: var(--accent); background: var(--bg3); }
+.app-card:hover .app-card-arrow { color: var(--accent); }
+.app-card-top { display: flex; align-items: center; justify-content: space-between; }
+.app-card-icon { font-size: 22px; line-height: 1; }
+.app-card-arrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  color: var(--fg3);
+  transition: color 0.15s;
 }
-
-.app-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  border-radius: 20px 20px 0 0;
-  background: var(--card-accent, #7c6af7);
-  opacity: 0.8;
-}
-
-.app-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 80% 20%, var(--card-glow, rgba(124,106,247,0.1)) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-.app-icon {
-  font-size: 30px;
-  line-height: 1;
-}
-
-.app-info { flex: 1; }
-
-.app-name {
-  font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 3px;
-  letter-spacing: -0.2px;
-}
-
-.app-desc {
+.app-card-name {
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
-  color: var(--muted);
-  line-height: 1.4;
+  font-weight: 600;
+  color: var(--fg);
+  letter-spacing: 0.04em;
+}
+.app-card-desc {
+  font-size: 10px;
+  color: var(--fg3);
+  line-height: 1.5;
 }
 
-.app-arrow {
+/* ── Backup hub ── */
+.backup-hub {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--blue);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+.backup-hub-title {
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 12px;
-  color: var(--muted);
-  align-self: flex-end;
-  margin-top: 4px;
+  font-weight: 600;
+  color: var(--blue);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
+.backup-hub-title .auto-badge {
+  font-size: 9px;
+  background: rgba(88,166,255,0.15);
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  padding: 1px 6px;
+  letter-spacing: 0.06em;
+}
+.backup-info-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.backup-info-chip {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  flex: 1;
+  min-width: 110px;
+}
+.backup-info-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--fg3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.backup-info-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.backup-info-val.good { color: var(--green); }
+.backup-info-val.warn { color: var(--amber); }
+.backup-info-val.none { color: var(--fg3); }
 
-/* 각 카드별 색상 */
-.card-follow  { --card-accent: #00e676; --card-glow: rgba(0,230,118,0.1); }
-.card-asset   { --card-accent: #60a5fa; --card-glow: rgba(96,165,250,0.1); }
-.card-soxl    { --card-accent: #ff80ab; --card-glow: rgba(255,128,171,0.1); }
-.card-wedding { --card-accent: #fbbf24; --card-glow: rgba(251,191,36,0.1); }
-
-.card-follow .app-name  { color: #00e676; }
-.card-asset .app-name   { color: #60a5fa; }
-.card-soxl .app-name    { color: #ff80ab; }
-.card-wedding .app-name { color: #fbbf24; }
-
-/* ── 하단 구분선 & 버전 ── */
-.footer {
-  text-align: center;
-  padding: 20px;
+.backup-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.bb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
-  color: var(--muted);
-  letter-spacing: 0.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--fg2);
+  transition: all 0.12s;
+}
+.bb-btn:hover { border-color: var(--blue); color: var(--blue); }
+.bb-btn.primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #000;
+  font-weight: 600;
+}
+.bb-btn.primary:hover { opacity: 0.85; }
+.bb-btn.danger { border-color: var(--red); color: var(--red); }
+.bb-btn.danger:hover { background: rgba(255,61,61,0.1); }
+.bb-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Auth status ── */
+.auth-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+}
+.auth-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--fg3);
+  flex-shrink: 0;
+}
+.auth-dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.auth-dot.error { background: var(--red); }
+.auth-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--fg2);
+  flex: 1;
+}
+.auth-user {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--fg3);
 }
 
-/* ── 로딩 스플래시 ── */
-.splash {
+/* ── Toast ── */
+.bb-toast {
   position: fixed;
-  inset: 0;
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
+  padding: 10px 18px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--fg);
+  white-space: nowrap;
+  z-index: 9999;
+  transition: transform 0.25s ease;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.bb-toast.show { transform: translateX(-50%) translateY(0); }
+.bb-toast.success { border-left-color: var(--green); }
+.bb-toast.error { border-left-color: var(--red); }
+
+/* ── Restore modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 9998;
   align-items: center;
   justify-content: center;
-  z-index: 999;
-  transition: opacity 0.4s ease;
+  padding: 16px;
 }
-
-.splash.fade-out {
-  opacity: 0;
-  pointer-events: none;
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--amber);
+  width: 100%; max-width: 440px;
+  padding: 20px;
 }
-
-.splash-icon {
-  width: 80px; height: 80px;
-  background: linear-gradient(135deg, #7c6af7, #a78bfa);
-  border-radius: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  box-shadow: 0 12px 40px rgba(124,106,247,0.5);
-  animation: splashPulse 1.2s ease-in-out infinite;
+.modal-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
 }
-
-@keyframes splashPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
+.modal-body {
+  font-size: 12px;
+  color: var(--fg2);
+  line-height: 1.7;
+  margin-bottom: 16px;
 }
-
-.splash-title {
-  margin-top: 20px;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.3px;
+.modal-file-list {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--fg3);
+  max-height: 160px;
+  overflow-y: auto;
+  line-height: 2;
+}
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-cancel {
+  padding: 6px 14px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--fg3);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+}
+.modal-confirm {
+  padding: 6px 16px;
+  background: var(--amber);
+  border: 1px solid var(--amber);
+  color: #000;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
 }
 </style>
-</head>
-<body>
 
-<!-- 스플래시 -->
-<div class="splash" id="splash">
-  <div class="splash-icon">🤖</div>
-  <div class="splash-title">AI Tool 모음</div>
+<!-- Topbar -->
+<div class="bb-topbar">
+  <div class="bb-logo">⬛ AI TOOLS <span>PERSONAL DASHBOARD</span></div>
+  <div class="bb-topbar-right">
+    <span class="bb-backup-status" id="topbarBackupStatus">BACKUP: —</span>
+  </div>
 </div>
 
-<div class="wrap">
-  <!-- 히어로 -->
-  <div class="hero">
-    <div class="hero-icon">🤖</div>
-    <div class="hero-title">AI Tool 모음</div>
-    <div class="hero-sub">내가 만든 나만의 금융 도구 모음</div>
-  </div>
+<!-- Content -->
+<div class="content">
 
-  <div class="section-label">도구 목록</div>
-
-  <!-- 앱 그리드 -->
+  <!-- Apps -->
+  <div class="bb-section-hd">APPLICATIONS</div>
   <div class="app-grid">
-
-    <a class="app-card card-follow" href="follow.html">
-      <div class="app-icon">📈</div>
-      <div class="app-info">
-        <div class="app-name">팔로우 트래커</div>
-        <div class="app-desc">전문가 주식 팔로우 · 비율 계산</div>
+    <a class="app-card" href="follow-bb.html">
+      <div class="app-card-top">
+        <div class="app-card-icon">📈</div>
+        <div class="app-card-arrow">→</div>
       </div>
-      <div class="app-arrow">→</div>
+      <div class="app-card-name">FOLLOW TRACKER</div>
+      <div class="app-card-desc">전문가 팔로우 · 포트 비율</div>
     </a>
-
-    <a class="app-card card-asset" href="asset.html">
-      <div class="app-icon">💰</div>
-      <div class="app-info">
-        <div class="app-name">자산 관리</div>
-        <div class="app-desc">투자·고정·부동산·부채 대시보드</div>
+    <a class="app-card" href="asset-bb.html">
+      <div class="app-card-top">
+        <div class="app-card-icon">💰</div>
+        <div class="app-card-arrow">→</div>
       </div>
-      <div class="app-arrow">→</div>
+      <div class="app-card-name">ASSET MANAGER</div>
+      <div class="app-card-desc">투자 · 고정 · 부동산 · 부채</div>
     </a>
-
-    <a class="app-card card-soxl" href="soxl.html">
-      <div class="app-icon">🚀</div>
-      <div class="app-info">
-        <div class="app-name">SOXL 트래커</div>
-        <div class="app-desc">A·B계좌 손익 비교 차트</div>
+    <a class="app-card" href="soxl-bb.html">
+      <div class="app-card-top">
+        <div class="app-card-icon">🚀</div>
+        <div class="app-card-arrow">→</div>
       </div>
-      <div class="app-arrow">→</div>
+      <div class="app-card-name">SOXL TRACKER</div>
+      <div class="app-card-desc">A · B계좌 손익 비교 차트</div>
     </a>
-
-    <a class="app-card card-wedding" href="wedding.html">
-      <div class="app-icon">🎊</div>
-      <div class="app-info">
-        <div class="app-name">축의금 장부</div>
-        <div class="app-desc">결혼식 축의금 현장·입금 기록</div>
+    <a class="app-card" href="wedding-bb.html">
+      <div class="app-card-top">
+        <div class="app-card-icon">🎊</div>
+        <div class="app-card-arrow">→</div>
       </div>
-      <div class="app-arrow">→</div>
+      <div class="app-card-name">WEDDING LEDGER</div>
+      <div class="app-card-desc">축의금 현장 · 입금 기록</div>
     </a>
-
   </div>
 
-  <div class="footer">AI Tool 모음 · v10.07 · suhong</div>
+  <!-- Backup Hub -->
+  <div class="bb-section-hd">DATA BACKUP</div>
+  <div class="backup-hub">
+    <div class="backup-hub-title">
+      Google Drive Backup
+      <span class="auto-badge">AUTO · 7D</span>
+    </div>
+
+    <!-- Auth status -->
+    <div class="auth-row" id="authRow">
+      <div class="auth-dot" id="authDot"></div>
+      <div class="auth-text" id="authText">Google Drive 연결 안 됨</div>
+      <div class="auth-user" id="authUser"></div>
+    </div>
+
+    <!-- Info chips -->
+    <div class="backup-info-row">
+      <div class="backup-info-chip">
+        <div class="backup-info-label">마지막 백업</div>
+        <div class="backup-info-val none" id="lastBackupVal">—</div>
+      </div>
+      <div class="backup-info-chip">
+        <div class="backup-info-label">다음 백업</div>
+        <div class="backup-info-val none" id="nextBackupVal">—</div>
+      </div>
+      <div class="backup-info-chip">
+        <div class="backup-info-label">백업 항목</div>
+        <div class="backup-info-val" id="backupItemsVal">4개 앱</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="backup-actions">
+      <button class="bb-btn primary" id="connectBtn" onclick="handleConnect()">🔗 Google 연결</button>
+      <button class="bb-btn" id="manualBackupBtn" onclick="doManualBackup()" disabled>📤 지금 백업</button>
+      <button class="bb-btn" id="restoreBtn" onclick="openRestoreModal()" disabled>📥 복원</button>
+      <button class="bb-btn danger" id="disconnectBtn" onclick="handleDisconnect()" style="display:none;">연결 해제</button>
+    </div>
+  </div>
+
 </div>
 
+<!-- Restore modal -->
+<div class="modal-overlay" id="restoreModal" onclick="handleModalOverlay(event)">
+  <div class="modal-box">
+    <div class="modal-title">⚠ 데이터 복원</div>
+    <div class="modal-body">
+      Google Drive의 최근 백업 파일에서 데이터를 불러옵니다.<br>
+      <strong style="color:var(--red);">현재 기기의 데이터는 덮어씁니다.</strong>
+    </div>
+    <div class="modal-file-list" id="restoreFileList">백업 파일 목록 불러오는 중...</div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeRestoreModal()">취소</button>
+      <button class="modal-confirm" id="restoreConfirmBtn" onclick="doRestore()" disabled>복원 실행</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="bb-toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/google-api-client/1.0.1/lib/gapi.min.js"></script>
 <script>
-// 스플래시 제거
-window.addEventListener('load', () => {
-  const splash = document.getElementById('splash');
-  setTimeout(() => {
-    splash.classList.add('fade-out');
-    setTimeout(() => splash.remove(), 400);
-  }, 600);
+// ── Constants ──
+const CLIENT_ID = '401384383704-caa5c1k08jr33ob98fvr5q28eb79561g.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+const BACKUP_FOLDER = 'suhong-apps-backup';
+const BACKUP_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const LS_LAST_BACKUP = 'bb-last-backup-ts';
+const LS_TOKEN = 'bb-gtoken';
+
+// ── localStorage keys to back up ──
+const BACKUP_KEYS = {
+  'follow': [
+    'port-data-v1',
+    'stock-tracker-data',
+    'tracker-memo',
+    'tracker-memo-title',
+    'last-update-date',
+  ],
+  'asset': ['asset_dashboard_v2'],
+  'soxl': [
+    'soxl-a-data',
+    'soxl-b-data',
+    'soxl-last-checked',
+  ],
+  'wedding': ['wedding-ledger-v1'],
+};
+
+let tokenClient = null;
+let accessToken = null;
+let restoreFileId = null;
+
+// ── Init ──
+window.addEventListener('load', function() {
+  loadGapi();
+  updateUI();
+  checkAutoBackup();
 });
 
-// PWA 서비스워커 등록
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('launcher-sw.js');
+function loadGapi() {
+  gapi.load('client', function() {
+    gapi.client.init({
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+    }).then(function() {
+      // Try to restore saved token
+      var saved = getSavedToken();
+      if (saved) {
+        accessToken = saved;
+        gapi.client.setToken({ access_token: accessToken });
+        verifyToken();
+      }
+    }).catch(function(e) {
+      console.warn('gapi init error', e);
+    });
+  });
+}
+
+function getSavedToken() {
+  try { return localStorage.getItem(LS_TOKEN); } catch(e) { return null; }
+}
+function saveToken(t) {
+  try { localStorage.setItem(LS_TOKEN, t); } catch(e) {}
+}
+function clearToken() {
+  try { localStorage.removeItem(LS_TOKEN); } catch(e) {}
+  accessToken = null;
+}
+
+function verifyToken() {
+  // ping Drive to check token validity
+  gapi.client.request({
+    path: 'https://www.googleapis.com/oauth2/v1/tokeninfo',
+    params: { access_token: accessToken }
+  }).then(function(res) {
+    var info = res.result;
+    if (info && info.email) {
+      setConnected(info.email);
+    } else {
+      clearToken();
+      setDisconnected();
+    }
+  }).catch(function() {
+    clearToken();
+    setDisconnected();
+  });
+}
+
+// ── OAuth ──
+function handleConnect() {
+  // Use Google Identity Services (GSI)
+  if (!window.google || !window.google.accounts) {
+    // Load GSI dynamically
+    var s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = function() { initTokenClient(); };
+    document.head.appendChild(s);
+  } else {
+    initTokenClient();
+  }
+}
+
+function initTokenClient() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: function(resp) {
+      if (resp.error) {
+        showToast('Google 연결 실패: ' + resp.error, 'error');
+        return;
+      }
+      accessToken = resp.access_token;
+      saveToken(accessToken);
+      gapi.client.setToken({ access_token: accessToken });
+      // Get user info
+      gapi.client.request({
+        path: 'https://www.googleapis.com/oauth2/v1/userinfo',
+        params: { access_token: accessToken }
+      }).then(function(r) {
+        setConnected(r.result.email || '연결됨');
+        showToast('Google Drive 연결 완료!', 'success');
+        checkAutoBackup();
+      }).catch(function() {
+        setConnected('연결됨');
+        showToast('Google Drive 연결 완료!', 'success');
+      });
+    },
+  });
+  tokenClient.requestAccessToken({ prompt: '' });
+}
+
+function handleDisconnect() {
+  if (accessToken && window.google && window.google.accounts) {
+    google.accounts.oauth2.revoke(accessToken, function() {});
+  }
+  clearToken();
+  setDisconnected();
+  showToast('Google Drive 연결이 해제됐습니다.', '');
+}
+
+// ── UI state ──
+function setConnected(email) {
+  document.getElementById('authDot').className = 'auth-dot connected';
+  document.getElementById('authText').textContent = 'Google Drive 연결됨';
+  document.getElementById('authUser').textContent = email;
+  document.getElementById('connectBtn').style.display = 'none';
+  document.getElementById('disconnectBtn').style.display = '';
+  document.getElementById('manualBackupBtn').disabled = false;
+  document.getElementById('restoreBtn').disabled = false;
+  updateUI();
+}
+
+function setDisconnected() {
+  document.getElementById('authDot').className = 'auth-dot';
+  document.getElementById('authText').textContent = 'Google Drive 연결 안 됨';
+  document.getElementById('authUser').textContent = '';
+  document.getElementById('connectBtn').style.display = '';
+  document.getElementById('disconnectBtn').style.display = 'none';
+  document.getElementById('manualBackupBtn').disabled = true;
+  document.getElementById('restoreBtn').disabled = true;
+  updateUI();
+}
+
+function updateUI() {
+  var lastTs = null;
+  try { lastTs = parseInt(localStorage.getItem(LS_LAST_BACKUP), 10); } catch(e) {}
+
+  var lastEl = document.getElementById('lastBackupVal');
+  var nextEl = document.getElementById('nextBackupVal');
+  var topEl  = document.getElementById('topbarBackupStatus');
+
+  if (!lastTs || isNaN(lastTs)) {
+    lastEl.textContent = '없음';
+    lastEl.className = 'backup-info-val none';
+    nextEl.textContent = '—';
+    nextEl.className = 'backup-info-val none';
+    topEl.textContent = 'BACKUP: —';
+    topEl.className = 'bb-backup-status';
+    return;
+  }
+
+  var now = Date.now();
+  var diffMs = now - lastTs;
+  var diffDays = Math.floor(diffMs / 86400000);
+  var lastStr = diffDays === 0 ? '오늘' : diffDays + '일 전';
+  lastEl.textContent = lastStr;
+
+  var nextMs = lastTs + BACKUP_INTERVAL_MS - now;
+  var nextDays = Math.max(0, Math.ceil(nextMs / 86400000));
+  var isOverdue = diffMs > BACKUP_INTERVAL_MS;
+
+  if (isOverdue) {
+    lastEl.className = 'backup-info-val warn';
+    nextEl.textContent = '예정 초과';
+    nextEl.className = 'backup-info-val warn';
+    topEl.textContent = 'BACKUP: OVERDUE';
+    topEl.className = 'bb-backup-status warn';
+  } else {
+    lastEl.className = 'backup-info-val good';
+    nextEl.textContent = nextDays + '일 후';
+    nextEl.className = 'backup-info-val';
+    topEl.textContent = 'BACKUP: ' + lastStr.toUpperCase();
+    topEl.className = 'bb-backup-status ok';
+  }
+}
+
+// ── Auto backup check ──
+function checkAutoBackup() {
+  if (!accessToken) return;
+  var lastTs = null;
+  try { lastTs = parseInt(localStorage.getItem(LS_LAST_BACKUP), 10); } catch(e) {}
+  if (!lastTs || isNaN(lastTs) || (Date.now() - lastTs) > BACKUP_INTERVAL_MS) {
+    console.log('[Backup] Auto-backup triggered');
+    doBackup(true);
+  }
+}
+
+// ── Backup logic ──
+function collectData() {
+  var payload = { ts: Date.now(), apps: {} };
+  Object.keys(BACKUP_KEYS).forEach(function(app) {
+    payload.apps[app] = {};
+    BACKUP_KEYS[app].forEach(function(key) {
+      try {
+        var val = localStorage.getItem(key);
+        if (val !== null) payload.apps[app][key] = val;
+      } catch(e) {}
+    });
+  });
+  return payload;
+}
+
+function doManualBackup() {
+  doBackup(false);
+}
+
+function doBackup(isAuto) {
+  if (!accessToken) return;
+  var btn = document.getElementById('manualBackupBtn');
+  btn.disabled = true;
+  btn.textContent = '백업 중...';
+
+  var payload = collectData();
+  var now = new Date();
+  var dateStr = now.getFullYear() + '-' +
+    String(now.getMonth()+1).padStart(2,'0') + '-' +
+    String(now.getDate()).padStart(2,'0');
+  var filename = 'suhong-apps-backup-' + dateStr + '.json';
+  var content = JSON.stringify(payload, null, 2);
+
+  // Find or create backup folder, then upload
+  findOrCreateFolder(BACKUP_FOLDER).then(function(folderId) {
+    return uploadFile(folderId, filename, content);
+  }).then(function() {
+    try { localStorage.setItem(LS_LAST_BACKUP, String(Date.now())); } catch(e) {}
+    updateUI();
+    btn.disabled = false;
+    btn.textContent = '📤 지금 백업';
+    if (!isAuto) showToast('백업 완료! — ' + filename, 'success');
+  }).catch(function(err) {
+    console.error('Backup error', err);
+    btn.disabled = false;
+    btn.textContent = '📤 지금 백업';
+    // Token expired → re-auth
+    if (err && err.status === 401) {
+      clearToken();
+      setDisconnected();
+      showToast('Google 세션이 만료됐습니다. 다시 연결해주세요.', 'error');
+    } else {
+      showToast('백업 실패. 다시 시도해주세요.', 'error');
+    }
+  });
+}
+
+function findOrCreateFolder(name) {
+  return gapi.client.request({
+    path: 'https://www.googleapis.com/drive/v3/files',
+    method: 'GET',
+    params: {
+      q: "mimeType='application/vnd.google-apps.folder' and name='" + name + "' and trashed=false",
+      fields: 'files(id,name)'
+    }
+  }).then(function(res) {
+    var files = res.result.files;
+    if (files && files.length > 0) return files[0].id;
+    // Create folder
+    return gapi.client.request({
+      path: 'https://www.googleapis.com/drive/v3/files',
+      method: 'POST',
+      body: { name: name, mimeType: 'application/vnd.google-apps.folder' }
+    }).then(function(r) { return r.result.id; });
+  });
+}
+
+function uploadFile(folderId, filename, content) {
+  var boundary = '-------suhongapps';
+  var delimiter = '\r\n--' + boundary + '\r\n';
+  var close_delim = '\r\n--' + boundary + '--';
+  var metadata = { name: filename, mimeType: 'application/json', parents: [folderId] };
+  var multipart = delimiter +
+    'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) +
+    delimiter + 'Content-Type: application/json\r\n\r\n' + content + close_delim;
+
+  return gapi.client.request({
+    path: 'https://www.googleapis.com/upload/drive/v3/files',
+    method: 'POST',
+    params: { uploadType: 'multipart' },
+    headers: { 'Content-Type': 'multipart/related; boundary="' + boundary + '"' },
+    body: multipart
+  });
+}
+
+// ── Restore logic ──
+var restoreFiles = [];
+
+function openRestoreModal() {
+  document.getElementById('restoreModal').classList.add('open');
+  document.getElementById('restoreFileList').textContent = '백업 파일 목록 불러오는 중...';
+  document.getElementById('restoreConfirmBtn').disabled = true;
+  restoreFileId = null;
+
+  findOrCreateFolder(BACKUP_FOLDER).then(function(folderId) {
+    return gapi.client.request({
+      path: 'https://www.googleapis.com/drive/v3/files',
+      params: {
+        q: "'" + folderId + "' in parents and name contains 'suhong-apps-backup' and trashed=false",
+        fields: 'files(id,name,createdTime)',
+        orderBy: 'createdTime desc',
+        pageSize: 10
+      }
+    });
+  }).then(function(res) {
+    restoreFiles = res.result.files || [];
+    if (restoreFiles.length === 0) {
+      document.getElementById('restoreFileList').textContent = '백업 파일 없음';
+      return;
+    }
+    var html = restoreFiles.map(function(f, i) {
+      var date = f.createdTime ? f.createdTime.substring(0,10) : '';
+      return '<div style="cursor:pointer;padding:2px 4px;" class="restore-file-item" data-id="' + f.id + '" data-idx="' + i + '">' +
+        (i === 0 ? '● ' : '  ') + f.name + (date ? ' <span style="color:var(--fg3);">(' + date + ')</span>' : '') +
+        '</div>';
+    }).join('');
+    document.getElementById('restoreFileList').innerHTML = html;
+
+    // Select latest by default
+    restoreFileId = restoreFiles[0].id;
+    document.getElementById('restoreConfirmBtn').disabled = false;
+
+    document.querySelectorAll('.restore-file-item').forEach(function(el) {
+      el.addEventListener('click', function() {
+        document.querySelectorAll('.restore-file-item').forEach(function(e) {
+          e.textContent = e.textContent.replace('● ', '  ');
+        });
+        el.textContent = '● ' + el.textContent.trimStart();
+        restoreFileId = el.getAttribute('data-id');
+        document.getElementById('restoreConfirmBtn').disabled = false;
+      });
+    });
+  }).catch(function() {
+    document.getElementById('restoreFileList').textContent = '파일 목록을 불러오지 못했습니다.';
+  });
+}
+
+function closeRestoreModal() {
+  document.getElementById('restoreModal').classList.remove('open');
+}
+function handleModalOverlay(e) {
+  if (e.target === document.getElementById('restoreModal')) closeRestoreModal();
+}
+
+function doRestore() {
+  if (!restoreFileId) return;
+  document.getElementById('restoreConfirmBtn').disabled = true;
+  document.getElementById('restoreConfirmBtn').textContent = '복원 중...';
+
+  gapi.client.request({
+    path: 'https://www.googleapis.com/drive/v3/files/' + restoreFileId,
+    params: { alt: 'media' }
+  }).then(function(res) {
+    var payload = res.result;
+    if (!payload || !payload.apps) throw new Error('invalid backup');
+    Object.keys(payload.apps).forEach(function(app) {
+      var appData = payload.apps[app];
+      Object.keys(appData).forEach(function(key) {
+        try { localStorage.setItem(key, appData[key]); } catch(e) {}
+      });
+    });
+    if (payload.ts) {
+      try { localStorage.setItem(LS_LAST_BACKUP, String(payload.ts)); } catch(e) {}
+    }
+    updateUI();
+    closeRestoreModal();
+    showToast('복원 완료! 각 앱을 새로고침해주세요.', 'success');
+  }).catch(function(err) {
+    console.error('Restore error', err);
+    document.getElementById('restoreConfirmBtn').disabled = false;
+    document.getElementById('restoreConfirmBtn').textContent = '복원 실행';
+    showToast('복원 실패. 다시 시도해주세요.', 'error');
+  });
+}
+
+// ── Toast ──
+var toastTimer;
+function showToast(msg, type) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'bb-toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { el.className = 'bb-toast'; }, 3500);
 }
 </script>
-</body>
-</html>

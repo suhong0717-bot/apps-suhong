@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="자산 관리">
+<meta name="theme-color" content="#0f1318">
+<title>자산 관리</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --debt:      #ff4d6d; --debt-bg:    rgba(255,77,109,0.08);
+  --invest:    #00d4a0; --invest-bg:  rgba(0,212,160,0.08);
+  --lock:      #fbbf24; --lock-bg:    rgba(251,191,36,0.08);
+  --house:     #60a5fa; --house-bg:   rgba(96,165,250,0.08);
+  --total:     #ff6b00;
+  --surface:   #141720;
+  --surface2:  #1a1f2e;
+  --border:    #252a38;
+  --muted:     #556070;
+  --text:      #d0d8e8;
+  --mono:      'IBM Plex Mono', monospace;
+  --sans:      'IBM Plex Sans KR', sans-serif;
+}
+
+body {
+  background: #0f1318;
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 40px;
+}
+
+/* ── Top Bar ── */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: var(--surface);
+  border-bottom: 3px solid var(--total);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  z-index: 9999;
+}
+.topbar-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,107,0,0.08);
+  border: 1px solid rgba(255,107,0,0.3);
+  color: var(--total);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-decoration: none;
+  letter-spacing: .04em;
+  transition: background .15s;
+}
+.topbar-back:hover { background: rgba(255,107,0,0.15); }
+.topbar-ver-btn {
+  background: var(--surface2);
+  border: 1px solid rgba(255,107,0,0.3);
+  color: var(--total);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* ── Version popup ── */
+.ver-popup {
+  display: none;
+  position: absolute;
+  right: 0; top: 32px;
+  background: #0d0d17;
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--total);
+  border-radius: 10px;
+  padding: 12px 16px;
+  width: max-content;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+  z-index: 10000;
+}
+.ver-popup-title { font-family: var(--mono); font-size: 10px; color: var(--total); font-weight: 700; margin-bottom: 8px; }
+.ver-popup-body { font-family: var(--mono); font-size: 10px; color: var(--text); line-height: 1.8; }
+
+/* ── Layout ── */
+.ad-wrap { padding: 64px 16px 16px; max-width: 480px; margin: 0 auto; }
+.ad-header { text-align: center; margin-bottom: 28px; }
+.ad-header-label { font-family: var(--mono); font-size: 11px; letter-spacing: 4px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+.ad-header-date { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+/* ── Net Total Card ── */
+.net-total {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 22px 24px 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.net-total:active { border-color: var(--total); }
+.net-total::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% -20%, rgba(255,107,0,0.10) 0%, transparent 70%);
+  pointer-events: none;
+}
+.net-label {
+  font-size: 12px; color: var(--muted); letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.net-toggle-wrap {
+  display: inline-flex; align-items: center;
+  background: #1e1e2e; border-radius: 14px; padding: 4px; gap: 2px; margin-left: 8px;
+}
+.net-toggle-opt {
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  padding: 6px 16px; border-radius: 10px; border: none;
+  background: transparent; color: var(--muted); cursor: pointer;
+  transition: background .2s, color .2s; white-space: nowrap;
+}
+.net-toggle-opt.active { background: #2e2e42; color: var(--text); font-weight: 700; }
+.net-value {
+  font-family: var(--mono); font-size: 42px; font-weight: 700;
+  color: var(--total); letter-spacing: -1px; transition: opacity .2s;
+}
+.net-unit { font-size: 16px; color: var(--muted); margin-left: 4px; }
+.net-dual { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 4px; }
+.net-block { text-align: center; }
+.net-block-label { font-size: 10px; font-family: var(--mono); color: var(--muted); letter-spacing: 1px; margin-bottom: 4px; }
+.net-block-val { font-family: var(--mono); font-size: 30px; font-weight: 700; color: var(--total); }
+.net-block-val.eval-val { color: #ffaa44; }
+.net-divider { width: 1px; height: 48px; background: var(--border); flex-shrink: 0; }
+.net-unit-small { font-size: 11px; color: var(--muted); }
+.net-diff-line { margin-top: 8px; font-family: var(--mono); font-size: 12px; min-height: 18px; }
+
+/* ── Summary Bar ── */
+.summary-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
+.summary-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 10px; text-align: center; cursor: pointer; transition: border-color .15s; }
+.summary-chip:hover { border-color: var(--muted); }
+.summary-chip .chip-icon { font-size: 18px; margin-bottom: 4px; }
+.summary-chip .chip-val { font-family: var(--mono); font-size: 15px; font-weight: 700; }
+.summary-chip .chip-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.chip-debt .chip-val { color: var(--debt); }
+.chip-invest .chip-val { color: var(--invest); }
+.chip-lock .chip-val { color: var(--lock); }
+.chip-house .chip-val { color: var(--house); }
+
+/* ── Cards ── */
+.cards { display: flex; flex-direction: column; gap: 16px; }
+.card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
+.card-debt   { border-top: 2px solid var(--debt); }
+.card-invest { border-top: 2px solid var(--invest); }
+.card-lock   { border-top: 2px solid var(--lock); }
+.card-house  { border-top: 2px solid var(--house); }
+.card-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 14px; cursor: pointer; user-select: none; }
+.card-header-left { display: flex; align-items: center; gap: 12px; }
+.card-icon { font-size: 22px; }
+.card-title { font-size: 13px; color: var(--muted); font-weight: 500; }
+.card-total { font-family: var(--mono); font-size: 22px; font-weight: 700; margin-top: 2px; }
+.card-chevron { font-size: 12px; color: var(--muted); transition: transform .3s; }
+.card.collapsed .card-chevron { transform: rotate(-90deg); }
+.card-body { padding: 0 20px 20px; border-top: 1px solid var(--border); }
+.card.collapsed .card-body { display: none; }
+.card-debt   .card-total { color: var(--debt); }
+.card-invest .card-total { color: var(--invest); }
+.card-lock   .card-total { color: var(--lock); }
+.card-house  .card-total { color: var(--house); }
+.card-total-dual { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.card-total-arrow { font-size: 11px; color: var(--muted); }
+.card-total-eval { font-family: var(--mono); font-size: 16px; font-weight: 700; }
+.card-total-diff { font-family: var(--mono); font-size: 11px; margin-left: 2px; }
+
+/* ── Item rows ── */
+.item-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer;
+}
+.item-row:last-child { border-bottom: none; }
+.item-name { font-size: 14px; color: var(--text); }
+.item-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.item-right { text-align: right; }
+.item-val { font-family: var(--mono); font-size: 15px; font-weight: 700; }
+.neg { color: var(--debt); }
+.pos-invest { color: var(--invest); }
+.pos-lock { color: var(--lock); }
+.pos-house { color: var(--house); }
+.invest-vals { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.invest-row-pair { display: flex; align-items: center; gap: 6px; }
+.invest-badge { font-size: 9px; font-family: var(--mono); padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: .5px; }
+.badge-principal { background: rgba(255,255,255,0.07); color: var(--muted); }
+.badge-eval { background: var(--invest-bg); color: var(--invest); border: 1px solid rgba(0,212,160,.3); }
+.invest-diff { font-family: var(--mono); font-size: 11px; margin-top: 2px; }
+
+/* ── Add button ── */
+.add-btn {
+  display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 14px;
+  border: 1px dashed var(--border); border-radius: 10px; background: transparent;
+  color: var(--muted); font-size: 13px; font-family: var(--sans); cursor: pointer; width: 100%;
+  transition: border-color .2s, color .2s;
+}
+.add-btn:hover { border-color: var(--muted); color: var(--text); }
+
+/* ── Modal ── */
+.ad-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(6px); z-index: 400; align-items: flex-end; justify-content: center; }
+.ad-modal-overlay.open { display: flex; }
+.ad-modal { background: var(--surface2); border: 1px solid var(--border); border-radius: 24px 24px 0 0; padding: 28px 24px 80px; width: 100%; max-width: 480px; animation: slideUp .3s ease; position: relative; }
+.ad-modal-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+.ad-modal label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.ad-modal input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--mono); font-size: 15px; padding: 12px 14px; margin-bottom: 16px; outline: none; }
+.ad-modal input:focus { border-color: var(--total); }
+.modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.btn { padding: 14px; border-radius: 12px; font-size: 14px; font-family: var(--sans); font-weight: 600; border: none; cursor: pointer; transition: opacity .15s; }
+.btn:active { opacity: .7; }
+.btn-cancel { background: var(--surface); color: var(--muted); }
+.btn-save { background: var(--total); color: #fff; }
+.btn-delete-small { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: .4; transition: opacity .2s; }
+.btn-delete-small:active { opacity: 1; }
+.btn-delete-small.hidden { display: none; }
+.owner-toggle { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 16px; }
+.owner-opt { flex: 1; padding: 10px; border-radius: 8px; border: none; background: transparent; color: var(--muted); font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer; transition: background .18s, color .18s; }
+.owner-opt.active { background: var(--surface2); color: var(--text); font-weight: 700; }
+
+/* ── Footer ── */
+.ad-footer { text-align: center; margin-top: 24px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+/* ── Undo Toast ── */
+.undo-toast {
+  position: fixed; bottom: 40px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--total);
+  border-radius: 16px; padding: 14px 18px;
+  display: flex; align-items: center; gap: 14px;
+  font-size: 13px; color: var(--text);
+  box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  z-index: 500; white-space: nowrap;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+  opacity: 0; pointer-events: none;
+}
+.undo-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: all; }
+.undo-toast-text { color: var(--muted); }
+.undo-toast-text strong { color: var(--text); }
+.undo-btn { background: var(--total); color: #fff; border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 700; font-family: var(--sans); cursor: pointer; }
+.undo-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--total); border-radius: 0 0 16px 16px; width: 100%; transform-origin: left; }
+
+@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <a href="index.html" class="topbar-back">← AI Tool 모음</a>
+  <div style="position:relative;">
+    <button class="topbar-ver-btn" onclick="toggleVersionPopup(event)">v10.07</button>
+    <div id="versionPopup" class="ver-popup">
+      <div class="ver-popup-title">업데이트 내역</div>
+      <div class="ver-popup-body">
+        <div style="white-space:nowrap;"><span style="color:var(--total);">v10.07</span> · 기본값 평가 모드, 런처 분리</div>
+        <div style="white-space:nowrap;"><span style="color:var(--muted);">v08.07</span> · 초기 출시</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ad-wrap">
+
+  <div class="ad-header">
+    <div class="ad-header-label">ASSET DASHBOARD</div>
+    <div class="ad-header-date" id="today-date"></div>
+  </div>
+
+  <div class="net-total" onclick="toggleNetMode()">
+    <div class="net-label">
+      순자산
+      <div class="net-toggle-wrap">
+        <button class="net-toggle-opt" id="net-toggle-principal">원금</button>
+        <button class="net-toggle-opt active" id="net-toggle-eval">평가</button>
+      </div>
+    </div>
+    <div id="net-single" style="display:none">
+      <div class="net-value" id="net-display">–<span class="net-unit">만원</span></div>
+    </div>
+    <div id="net-dual-view">
+      <div class="net-dual">
+        <div class="net-block">
+          <div class="net-block-label">원금</div>
+          <div class="net-block-val" id="net-principal">–</div>
+          <div class="net-unit-small">만원</div>
+        </div>
+        <div class="net-divider"></div>
+        <div class="net-block">
+          <div class="net-block-label">평가</div>
+          <div class="net-block-val eval-val" id="net-eval">–</div>
+          <div class="net-unit-small">만원</div>
+        </div>
+      </div>
+      <div class="net-diff-line" id="net-diff-display"></div>
+    </div>
+  </div>
+
+  <div class="summary-bar">
+    <div class="summary-chip chip-invest" onclick="scrollToCard('invest')">
+      <div class="chip-icon">💸</div>
+      <div class="chip-val" id="chip-invest">–</div>
+      <div class="chip-lbl">투자</div>
+    </div>
+    <div class="summary-chip chip-lock" onclick="scrollToCard('lock')">
+      <div class="chip-icon">🔒</div>
+      <div class="chip-val" id="chip-lock">–</div>
+      <div class="chip-lbl">고정</div>
+    </div>
+    <div class="summary-chip chip-house" onclick="scrollToCard('house')">
+      <div class="chip-icon">🏠</div>
+      <div class="chip-val" id="chip-house">–</div>
+      <div class="chip-lbl">부동산</div>
+    </div>
+    <div class="summary-chip chip-debt" onclick="scrollToCard('debt')">
+      <div class="chip-icon">🚨</div>
+      <div class="chip-val" id="chip-debt">–</div>
+      <div class="chip-lbl">부채</div>
+    </div>
+  </div>
+
+  <div class="cards" id="cards-container"></div>
+  <div class="ad-footer" id="footer-updated"></div>
+
+</div>
+
+<!-- Asset Modal -->
+<div class="ad-modal-overlay" id="ad-modal-overlay">
+  <div class="ad-modal">
+    <button class="btn-delete-small" id="modal-delete-btn" onclick="deleteItem()">🗑️</button>
+    <div class="ad-modal-title" id="modal-title">항목 편집</div>
+    <label>항목명</label>
+    <input type="text" id="modal-name" placeholder="예: 농협주식">
+    <label>금액 (만원)</label>
+    <input type="number" id="modal-amount" placeholder="예: 4000">
+    <label>메모 (선택)</label>
+    <input type="text" id="modal-note">
+    <div id="modal-eval-section" style="display:none">
+      <label>평가금액 (선택)</label>
+      <input type="number" id="modal-eval">
+    </div>
+    <label style="margin-top:4px">구분</label>
+    <div class="owner-toggle">
+      <button class="owner-opt active" id="owner-personal" onclick="selectOwner('personal')">개인</button>
+      <button class="owner-opt" id="owner-couple" onclick="selectOwner('couple')">부부 👫</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeAdModal()">취소</button>
+      <button class="btn btn-save" onclick="saveItem()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Undo Toast -->
+<div class="undo-toast" id="undo-toast">
+  <span class="undo-toast-text"><strong id="undo-item-name"></strong> 삭제됨</span>
+  <button class="undo-btn" onclick="undoAdDelete()">되돌리기</button>
+  <div class="undo-progress" id="undo-progress"></div>
+</div>
+
+<script>
+const AD_KEY = 'asset_dashboard_v2';
+const defaultData = {
+  lastUpdated: new Date().toISOString(),
+  groups: [
+    { id:'invest', icon:'💸', label:'투자', type:'invest', items:[
+      { id:'i4', name:'농협주식', amount:3700, note:'싼타1000', full:null, eval:13600, owner:'personal' },
+      { id:'i5', name:'주식보상', amount:700, note:'', full:null, eval:1500, owner:'personal' },
+      { id:'i6', name:'부부ISA', amount:2400, note:'', full:null, eval:3500, owner:'couple' },
+    ]},
+    { id:'lock', icon:'🔒', label:'고정자산', type:'lock', items:[
+      { id:'i7', name:'연금저축펀드', amount:1800, note:'600-회사 넣기 26년', full:null, eval:3600, owner:'personal' },
+      { id:'i8', name:'회사연금저축', amount:1100, note:'', full:null, eval:2700, owner:'personal' },
+      { id:'i9', name:'농협청약', amount:1120, note:'10+10 / 22일', full:null, eval:null, owner:'personal' },
+    ]},
+    { id:'house', icon:'🏠', label:'부동산', type:'house', items:[
+      { id:'i10', name:'주택자금', amount:6500, note:'', full:null, owner:'personal' },
+      { id:'i11', name:'대출상환', amount:600, note:'', full:null, owner:'couple' },
+    ]},
+    { id:'debt', icon:'🚨', label:'부채', type:'debt', items:[
+      { id:'i1', name:'엄마주식대출', amount:-3000, note:'', full:null, owner:'personal' },
+      { id:'i2', name:'농협 청약대출', amount:-1000, note:'', full:null, owner:'personal' },
+      { id:'i3', name:'제주 신용대출', amount:-3000, note:'', full:null, owner:'personal' },
+    ]},
+  ]
+};
+
+function adLoadData() {
+  try { const r=localStorage.getItem(AD_KEY); if(!r) return defaultData; return JSON.parse(r); } catch { return defaultData; }
+}
+function adSaveData(d) { d.lastUpdated=new Date().toISOString(); localStorage.setItem(AD_KEY, JSON.stringify(d)); }
+
+let appData = adLoadData();
+let netMode = 'eval';
+
+function fmtAbs(n) { return Math.abs(n).toLocaleString(); }
+function effectiveAmount(item) { return item.owner==='couple' ? item.amount/2 : item.amount; }
+function effectiveEval(item) { const e=(item.eval!==null&&item.eval!==undefined)?item.eval:item.amount; return item.owner==='couple'?e/2:e; }
+
+function computeTotals() {
+  const t={}; appData.groups.forEach(g=>{ t[g.id]=g.items.reduce((s,i)=>s+effectiveAmount(i),0); }); return t;
+}
+function computeEvalTotals() {
+  const EVAL_IDS=['i7','i8']; const t={};
+  appData.groups.forEach(g=>{ t[g.id]=g.items.reduce((s,i)=>{ const u=g.type==='invest'||(g.type==='lock'&&EVAL_IDS.includes(i.id)); return s+(u?effectiveEval(i):effectiveAmount(i)); },0); }); return t;
+}
+
+function renderAll() {
+  const totals=computeTotals(); const evalTotals=computeEvalTotals();
+  const netP=Object.values(totals).reduce((a,b)=>a+b,0);
+  const netE=Object.values(evalTotals).reduce((a,b)=>a+b,0);
+  const netDiff=netE-netP;
+  document.getElementById('net-display').innerHTML=`${netP.toLocaleString()}<span class="net-unit">만원</span>`;
+  document.getElementById('net-principal').textContent=netP.toLocaleString();
+  document.getElementById('net-eval').textContent=netE.toLocaleString();
+  const diffEl=document.getElementById('net-diff-display');
+  if(netDiff!==0){const s=netDiff>0?'+':'−';const c=netDiff>0?'var(--invest)':'var(--debt)';diffEl.innerHTML=`<span style="color:${c};font-weight:700">${s} ${Math.abs(netDiff).toLocaleString()} 만원</span>`;}else{diffEl.innerHTML='';}
+  const chipMap={debt:'chip-debt',invest:'chip-invest',lock:'chip-lock',house:'chip-house'};
+  appData.groups.forEach(g=>{const el=document.getElementById(chipMap[g.type]||'chip-'+g.type);if(el){const v=netMode==='eval'?evalTotals[g.id]:totals[g.id];el.textContent=(g.type==='debt'?'− ':'')+fmtAbs(v);}});
+  const container=document.getElementById('cards-container'); container.innerHTML='';
+  const ORDER = ['invest', 'lock', 'house', 'debt'];
+  const sorted = ORDER.map(t => appData.groups.find(g => g.type === t)).filter(Boolean);
+  sorted.forEach((g) => { container.appendChild(buildCard(g, totals[g.id], evalTotals[g.id])); });
+  const d=new Date(); document.getElementById('today-date').textContent=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+  const lu=new Date(appData.lastUpdated); document.getElementById('footer-updated').textContent=`마지막 수정: ${lu.getFullYear()}.${String(lu.getMonth()+1).padStart(2,'0')}.${String(lu.getDate()).padStart(2,'0')} ${String(lu.getHours()).padStart(2,'0')}:${String(lu.getMinutes()).padStart(2,'0')}`;
+}
+
+function buildCard(group, total, evalTotal) {
+  const div=document.createElement('div'); div.className=`card card-${group.type}`; div.dataset.gid=group.id;
+  const valClass=group.type==='debt'?'neg':group.type==='invest'?'pos-invest':group.type==='lock'?'pos-lock':'pos-house';
+  let totalDisplay;
+  const showDual=netMode==='eval'&&(group.type==='invest'||group.type==='lock')&&evalTotal!==undefined;
+  if(showDual){const diff=evalTotal-total;const diffSign=diff>=0?'+':'−';const diffColor=diff>=0?'var(--invest)':'var(--debt)';const hasAnyEval=group.items.some(i=>i.eval!==null&&i.eval!==undefined);const colClass=group.type==='invest'?'pos-invest':'pos-lock';totalDisplay=`<div class="card-total-dual"><span class="card-total ${colClass}" style="font-size:18px">${fmtAbs(total)}</span>${hasAnyEval?`<span class="card-total-arrow">→</span><span class="card-total-eval ${colClass}">${fmtAbs(evalTotal)}</span><span class="card-total-diff" style="color:${diffColor}">(${diffSign}${Math.abs(diff).toLocaleString()})</span>`:''}<span style="font-size:11px;color:var(--muted)">만원</span></div>`;}
+  else{totalDisplay=`<div class="card-total ${valClass}">${group.type==='debt'?'− ':''}${fmtAbs(total)} <span style="font-size:12px;color:var(--muted)">만원</span></div>`;}
+  div.innerHTML=`<div class="card-header" onclick="toggleCard('${group.id}')"><div class="card-header-left"><span class="card-icon">${group.icon}</span><div><div class="card-title">${group.label}</div>${totalDisplay}</div></div><span class="card-chevron">▼</span></div><div class="card-body">${group.items.map(item=>buildItemRow(item,group.type,group.id)).join('')}<button class="add-btn" onclick="openAdModal('${group.id}',null)">＋ 항목 추가</button></div>`;
+  return div;
+}
+
+function buildItemRow(item, type, gid) {
+  const valClass=type==='debt'?'neg':type==='invest'?'pos-invest':type==='lock'?'pos-lock':'pos-house';
+  const sign=item.amount<0?'−':'+';
+  const noteLine=item.note?`<div class="item-sub">${item.note}</div>`:'';
+  const EVAL_IDS=['i7','i8'];
+  const isEval=type==='invest'||(type==='lock'&&EVAL_IDS.includes(item.id));
+  const dispAmount=effectiveAmount(item);
+  let valDisplay;
+  if(isEval&&netMode==='eval'){const hasEval=item.eval!==null&&item.eval!==undefined;const dispEval=hasEval?effectiveEval(item):null;const diff=hasEval?dispEval-dispAmount:null;const diffSign=diff!==null?(diff>=0?'+':'−'):'';const diffColor=diff!==null?(diff>=0?'var(--invest)':'var(--debt)'):'var(--muted)';const valColor=type==='invest'?'pos-invest':'pos-lock';valDisplay=`<div class="invest-vals"><div class="invest-row-pair"><span class="invest-badge badge-principal">원금</span><span class="item-val ${valColor}" style="font-size:13px">${fmtAbs(dispAmount)}</span></div>${hasEval?`<div class="invest-row-pair"><span class="invest-badge badge-eval">평가</span><span class="item-val ${valColor}" style="font-size:13px">${fmtAbs(dispEval)}</span></div><div class="invest-diff" style="color:${diffColor}">${diffSign} ${fmtAbs(diff)}</div>`:`<div class="invest-diff" style="color:var(--muted);font-size:10px">평가금 미입력</div>`}</div>`;}
+  else{valDisplay=`<div class="item-right"><div class="item-val ${valClass}">${sign} ${fmtAbs(dispAmount)}</div></div>`;}
+  return `<div class="item-row" onclick="openAdModal('${gid}','${item.id}')" style="${isEval&&netMode==='eval'?'align-items:flex-start':''}"><div><div class="item-name">${item.name}${item.owner==='couple'?' 💑':''}</div>${noteLine}</div>${valDisplay}</div>`;
+}
+
+function toggleCard(gid) { const el=document.querySelector(`.card[data-gid="${gid}"]`); if(el) el.classList.toggle('collapsed'); }
+function scrollToCard(type) { const g=appData.groups.find(g=>g.type===type); if(!g) return; const card=document.querySelector(`.card[data-gid="${g.id}"]`); if(!card) return; card.classList.remove('collapsed'); setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'start'}),50); }
+
+let _editGid=null, _editIid=null;
+function openAdModal(gid, iid) {
+  _editGid=gid; _editIid=iid; const isNew=iid===null;
+  document.getElementById('modal-title').textContent=isNew?'항목 추가':'항목 편집';
+  const delBtn=document.getElementById('modal-delete-btn');
+  isNew?delBtn.classList.add('hidden'):delBtn.classList.remove('hidden');
+  const group=appData.groups.find(g=>g.id===gid);
+  const item=!isNew?group.items.find(i=>i.id===iid):null;
+  const EVAL_IDS=['i7','i8'];
+  const showEval=group&&(group.type==='invest'||(group.type==='lock'&&item&&EVAL_IDS.includes(item.id)));
+  document.getElementById('modal-eval-section').style.display=showEval?'block':'none';
+  if(!isNew){document.getElementById('modal-name').value=item.name;document.getElementById('modal-amount').value=item.amount;document.getElementById('modal-note').value=item.note||'';document.getElementById('modal-eval').value=(item.eval!==null&&item.eval!==undefined)?item.eval:'';selectOwner(item.owner||'personal');}
+  else{document.getElementById('modal-name').value='';document.getElementById('modal-amount').value='';document.getElementById('modal-note').value='';document.getElementById('modal-eval').value='';selectOwner('personal');}
+  document.getElementById('ad-modal-overlay').classList.add('open');
+}
+function closeAdModal() { document.getElementById('ad-modal-overlay').classList.remove('open'); }
+function saveItem() {
+  const name=document.getElementById('modal-name').value.trim();
+  const amount=parseFloat(document.getElementById('modal-amount').value);
+  const note=document.getElementById('modal-note').value.trim();
+  const evalVal=document.getElementById('modal-eval').value;
+  const owner=document.getElementById('owner-couple').classList.contains('active')?'couple':'personal';
+  if(!name||isNaN(amount)){alert('항목명과 금액을 입력해주세요.');return;}
+  const group=appData.groups.find(g=>g.id===_editGid);
+  if(_editIid===null){group.items.push({id:'i'+Date.now(),name,amount,note:note||'',eval:evalVal!==''?parseFloat(evalVal):null,owner});}
+  else{const item=group.items.find(i=>i.id===_editIid);item.name=name;item.amount=amount;item.note=note||'';item.eval=evalVal!==''?parseFloat(evalVal):null;item.owner=owner;}
+  adSaveData(appData); renderAll(); closeAdModal();
+}
+
+let _undoSnapshot=null, _adUndoTimer=null;
+function deleteItem() {
+  const group=appData.groups.find(g=>g.id===_editGid);
+  const item=group.items.find(i=>i.id===_editIid);
+  _undoSnapshot={groupId:_editGid,item:JSON.parse(JSON.stringify(item)),index:group.items.indexOf(item)};
+  group.items=group.items.filter(i=>i.id!==_editIid);
+  adSaveData(appData); renderAll(); closeAdModal(); showAdUndoToast(item.name);
+}
+function showAdUndoToast(name) {
+  const toast=document.getElementById('undo-toast');
+  const progress=document.getElementById('undo-progress');
+  document.getElementById('undo-item-name').textContent=name;
+  if(_adUndoTimer) clearTimeout(_adUndoTimer);
+  toast.classList.add('show');
+  progress.style.transition='none'; progress.style.transform='scaleX(1)';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ progress.style.transition='transform 5s linear'; progress.style.transform='scaleX(0)'; }));
+  _adUndoTimer=setTimeout(()=>{ toast.classList.remove('show'); _undoSnapshot=null; },5000);
+}
+function undoAdDelete() {
+  if(!_undoSnapshot) return;
+  const group=appData.groups.find(g=>g.id===_undoSnapshot.groupId);
+  group.items.splice(_undoSnapshot.index,0,_undoSnapshot.item);
+  adSaveData(appData); renderAll();
+  clearTimeout(_adUndoTimer);
+  document.getElementById('undo-toast').classList.remove('show');
+  _undoSnapshot=null;
+}
+function toggleNetMode() {
+  netMode=netMode==='principal'?'eval':'principal';
+  const single=document.getElementById('net-single'); const dual=document.getElementById('net-dual-view');
+  const btnP=document.getElementById('net-toggle-principal'); const btnE=document.getElementById('net-toggle-eval');
+  if(netMode==='eval'){single.style.display='none';dual.style.display='block';btnP.classList.remove('active');btnE.classList.add('active');}
+  else{single.style.display='block';dual.style.display='none';btnP.classList.add('active');btnE.classList.remove('active');}
+  renderAll();
+}
+function selectOwner(val) {
+  document.getElementById('owner-personal').classList.toggle('active',val==='personal');
+  document.getElementById('owner-couple').classList.toggle('active',val==='couple');
+}
+document.getElementById('ad-modal-overlay').addEventListener('click',function(e){if(e.target===this)closeAdModal();});
+
+function toggleVersionPopup(e) {
+  e.stopPropagation();
+  const p = document.getElementById('versionPopup');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function() {
+  const p = document.getElementById('versionPopup');
+  if (p) p.style.display = 'none';
+});
+
+renderAll();
+</script>
+</body>
+</html>
