@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="팔로우 트래커">
+<meta name="theme-color" content="#0a0c0f">
+<title>팔로우 트래커</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0c0f;
+  color: #c8d6e5;
+  font-family: 'Noto Sans KR', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 30px;
+}
+.st-wrap {
+  position: relative; z-index: 1;
+  max-width: 1100px; margin: 0 auto; padding: 16px 20px 28px;
+}
+.st-wrap::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,230,118,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,230,118,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+/* back button */
+.back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,230,118,0.08); border: 1px solid #00a854;
+  color: #00e676; font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; padding: 5px 12px; border-radius: 20px;
+  cursor: pointer; text-decoration: none; margin-bottom: 16px;
+  transition: background 0.15s;
+}
+.back-btn:hover { background: rgba(0,230,118,0.15); }
+/* header */
+.st-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 28px; padding-bottom: 20px;
+  border-bottom: 1px solid #1e2530;
+  position: relative; z-index: 1;
+}
+.st-header-left h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px; font-weight: 700;
+  color: #00e676; letter-spacing: -0.5px;
+}
+.st-header-left .sub {
+  font-size: 12px; color: #5a6a7a;
+  margin-top: 4px; font-family: 'JetBrains Mono', monospace;
+}
+.ratio-badge {
+  background: rgba(0,230,118,0.12); border: 1px solid #00a854;
+  color: #00e676; font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; padding: 6px 14px;
+  border-radius: 4px; display: flex; align-items: center; gap: 8px;
+}
+.ratio-badge span { color: #5a6a7a; font-size: 11px; }
+/* trade panel */
+.trade-panel {
+  background: #0f1215; border: 1px solid #1e2530;
+  border-radius: 8px; padding: 18px 20px; margin-bottom: 24px;
+  display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;
+  position: relative; z-index: 1;
+}
+.trade-panel h3 {
+  width: 100%; font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #5a6a7a; text-transform: uppercase;
+  letter-spacing: 1.5px; margin-bottom: 4px;
+}
+.field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 140px; }
+.field label { font-size: 11px; color: #5a6a7a; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; }
+.field select, .field input {
+  background: #141820; border: 1px solid #1e2530;
+  color: #c8d6e5; font-family: 'JetBrains Mono', monospace;
+  font-size: 14px; padding: 8px 12px;
+  border-radius: 4px; outline: none; transition: border-color 0.2s; width: 100%;
+}
+.field select:focus, .field input:focus { border-color: #00a854; }
+.field select option { background: #141820; }
+.btn-buy {
+  background: rgba(0,230,118,0.12); border: 1px solid #00a854;
+  color: #00e676; font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 700; padding: 8px 22px;
+  border-radius: 4px; cursor: pointer; letter-spacing: 1px;
+  transition: all 0.15s; white-space: nowrap; align-self: flex-end; height: 38px;
+}
+.btn-buy:hover { background: rgba(0,230,118,0.22); box-shadow: 0 0 12px rgba(0,230,118,0.2); }
+.btn-sell {
+  background: rgba(255,82,82,0.1); border: 1px solid #992222;
+  color: #ff5252; font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 700; padding: 8px 22px;
+  border-radius: 4px; cursor: pointer; letter-spacing: 1px;
+  transition: all 0.15s; white-space: nowrap; align-self: flex-end; height: 38px;
+}
+.btn-sell:hover { background: rgba(255,82,82,0.2); box-shadow: 0 0 12px rgba(255,82,82,0.2); }
+.btn-add-stock {
+  background: transparent; border: 1px dashed #1e2530;
+  color: #5a6a7a; font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; padding: 8px 16px; border-radius: 4px;
+  cursor: pointer; transition: all 0.15s; align-self: flex-end; height: 38px;
+}
+.btn-add-stock:hover { border-color: #00a854; color: #00e676; }
+/* table */
+.table-wrap {
+  background: #0f1215; border: 1px solid #1e2530;
+  border-radius: 8px; overflow: hidden; margin-bottom: 24px;
+  position: relative; z-index: 1;
+}
+table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+thead tr { background: #141820; border-bottom: 1px solid #1e2530; }
+th { padding: 10px 8px; text-align: right; font-size: 9px; font-weight: 500; color: #5a6a7a; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
+th:first-child { text-align: left; }
+tbody tr { border-bottom: 1px solid rgba(30,37,48,0.7); transition: background 0.12s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(0,230,118,0.03); }
+td { padding: 9px 8px; text-align: right; color: #c8d6e5; white-space: nowrap; }
+td:first-child { text-align: left; color: #00e676; font-weight: 500; }
+td.expert-qty { color: #ffd740; }
+td.my-qty { color: #00e676; font-weight: 700; }
+td.ratio-neg { color: #ff8a65; }
+td.ratio-zero { color: #5a6a7a; }
+td.ratio-pos { color: #00b4ff; }
+td.stock-name { cursor: pointer; }
+td.stock-name:hover { color: #ffd740; }
+.flash-buy { animation: flashBuy 0.6s ease-out; }
+.flash-sell { animation: flashSell 0.6s ease-out; }
+@keyframes flashBuy { 0% { background: rgba(0,230,118,0.25); } 100% { background: transparent; } }
+@keyframes flashSell { 0% { background: rgba(255,82,82,0.2); } 100% { background: transparent; } }
+.btn-del { background: none; border: none; color: #5a6a7a; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 3px; transition: color 0.15s; font-family: 'JetBrains Mono', monospace; }
+.btn-del:hover { color: #ff5252; }
+.drag-handle {
+  cursor: grab; color: #3a4a5a; font-size: 14px;
+  padding: 2px 6px; user-select: none; touch-action: none;
+  display: inline-flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1;
+}
+.drag-handle:active { cursor: grabbing; color: #00e676; }
+tr.dragging { opacity: 0.4; }
+tr.drag-over { border-top: 2px solid #00e676; }
+.inline-input { background: transparent; border: none; border-bottom: 1px solid #00a854; color: #ffd740; font-family: 'JetBrains Mono', monospace; font-size: 12px; width: 55px; text-align: right; outline: none; padding: 2px 2px; }
+.empty-row td { text-align: center; color: #5a6a7a; padding: 30px; font-size: 12px; }
+/* modal */
+.st-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 100; display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.st-modal-overlay.hidden { display: none !important; }
+.st-modal {
+  background: #0f1215; border: 1px solid #1e2530;
+  border-radius: 10px; padding: 24px; width: 360px; max-width: 95vw;
+}
+.st-modal h3 { font-family: 'JetBrains Mono', monospace; color: #00e676; font-size: 14px; margin-bottom: 18px; letter-spacing: 1px; }
+.st-modal .field { margin-bottom: 14px; }
+.modal-btns { display: flex; gap: 10px; margin-top: 18px; }
+.modal-btns button { flex: 1; }
+/* toast */
+.st-toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #141820; border: 1px solid #00a854;
+  color: #00e676; font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; padding: 14px 20px 0 20px;
+  border-radius: 10px; z-index: 400; opacity: 0;
+  transition: all 0.3s; pointer-events: none;
+  min-width: 260px; max-width: 90vw; overflow: hidden;
+}
+.st-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.st-toast.error { border-color: #ff5252; color: #ff5252; }
+.toast-body { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; gap: 14px; }
+.toast-undo-btn { background: transparent; border: 1px solid currentColor; color: inherit; font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.toast-bar-wrap { height: 3px; background: rgba(255,255,255,0.1); margin: 0 -20px; }
+.toast-bar { height: 3px; background: #00e676; width: 100%; transform-origin: left; }
+.toast-bar.running { animation: barShrink 5s linear forwards; }
+.st-toast.error .toast-bar { background: #ff5252; }
+@keyframes barShrink { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+/* Portfolio Panel */
+.port-panel {
+  background: #0d1117; border: 1px solid #1e2a38;
+  border-radius: 10px; margin-bottom: 10px; overflow: hidden;
+}
+.port-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.port-toggle-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-weight: 700; color: #00e676; letter-spacing: 0.5px;
+}
+.port-chevron { font-size: 10px; color: #5a6a7a; transition: transform 0.2s; }
+.port-chevron.open { transform: rotate(180deg); }
+.port-body { border-top: 1px solid #1e2a38; padding: 12px 16px; }
+.port-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+.port-col-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  color: #5a6a7a; letter-spacing: 1px; text-transform: uppercase;
+  padding-bottom: 6px; border-bottom: 1px solid #1e2a38; margin-bottom: 2px;
+}
+.port-cell { display: flex; flex-direction: row; align-items: baseline; justify-content: flex-end; padding: 4px 0; gap: 4px; overflow: hidden; }
+.port-cell-empty { visibility: hidden; pointer-events: none; }
+.port-cell-highlight .port-calc { color: #00e676 !important; font-weight: 700; }
+.port-cell-key { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #5a6a7a; white-space: nowrap; flex-shrink: 0; padding-left: 15%; }
+.port-cell-key::after { content: ' ₩'; color: #3a5a7a; font-size: 8px; }
+.port-input-blue {
+  background: transparent; border: none;
+  border-bottom: 1px solid #1e3a5a; color: #58b4ff;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  min-width: 0; flex: 1; outline: none; padding: 1px 0; text-align: right;
+}
+.port-calc { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #c9d1d9; text-align: right; flex: 1; min-width: 0; }
+.port-divider { height: 1px; background: #1e2a38; margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<!-- Undo/Redo 버튼 -->
+<div style="position:fixed;bottom:24px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:500;">
+  <button id="btn-undo" onclick="undo()" style="width:36px;height:36px;border-radius:50%;background:rgba(88,180,255,0.25);border:1px solid rgba(88,180,255,0.5);color:#58b4ff;font-size:18px;cursor:pointer;opacity:0.3;backdrop-filter:blur(4px);">⟲</button>
+  <button id="btn-redo" onclick="redo()" style="width:36px;height:36px;border-radius:50%;background:rgba(255,128,171,0.25);border:1px solid rgba(255,128,171,0.5);color:#ff80ab;font-size:18px;cursor:pointer;opacity:0.3;backdrop-filter:blur(4px);">⟳</button>
+</div>
+
+<div class="st-wrap">
+
+  <!-- 뒤로가기 버튼 -->
+  <a class="back-btn" href="index.html">← AI Tool 모음</a>
+
+  <div class="st-header">
+    <div class="st-header-left">
+      <h1>◈ FOLLOW TRACKER</h1>
+      <div class="sub">전문가 주식 팔로우 · 자동 비율 계산</div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+      <div style="display:flex; align-items:center; gap:6px;">
+        <div class="ratio-badge">
+          1/<input id="ratioInput" type="number" min="1" max="100" value="15"
+            style="background:transparent;border:none;border-bottom:1px solid #00a854;color:#00e676;font-family:'JetBrains Mono',monospace;font-size:13px;width:28px;text-align:center;outline:none;"
+            oninput="updateRatio()">
+        </div>
+        <button onclick="setLastUpdate()" style="background:#1e2a38;border:1px solid #2a3a4a;color:#58b4ff;font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 8px;border-radius:6px;cursor:pointer;">업데이트</button>
+      </div>
+      <div id="lastUpdateText" style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#5a6a7a;">last update · 2026.06.06</div>
+    </div>
+  </div>
+
+  <!-- 버전 배지 -->
+  <div style="position:fixed;top:8px;left:8px;z-index:9999;">
+    <button onclick="toggleVersionPopup(event)" style="background:#1e2a38;border:1px solid #58b4ff;color:#58b4ff;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;cursor:pointer;">v10.07</button>
+    <div id="versionPopup" style="display:none;position:absolute;left:0;top:28px;background:#0d1117;border:1px solid #1e2a38;border-radius:10px;padding:12px 16px;width:max-content;box-shadow:0 4px 16px rgba(0,0,0,0.6);">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#58b4ff;font-weight:700;margin-bottom:8px;">업데이트 내역</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#c9d1d9;line-height:1.8;">
+        <div style="white-space:nowrap;"><span style="color:#58b4ff;">v10.07</span> · apps-suhong 런처 분리</div>
+        <div style="white-space:nowrap;"><span style="color:#5a6a7a;">v08.07q</span> · 뒤로가기 팝업</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메모 패널 -->
+  <div class="port-panel" id="memoPanel" style="margin-bottom:10px;">
+    <div class="port-toggle" onclick="toggleMemo()">
+      <div>
+        <span class="port-toggle-label">✏️ 메모</span>
+        <span id="memoTitle" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#5a6a7a;margin-left:8px;"></span>
+      </div>
+      <span class="port-chevron" id="memoChevron">▼</span>
+    </div>
+    <div id="memoBody" style="display:none; border-top:1px solid #1e2a38; padding:10px 14px;">
+      <textarea id="memoText"
+        style="width:100%;min-height:120px;background:transparent;border:none;color:#c9d1d9;font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;outline:none;line-height:1.6;"
+        placeholder="자유롭게 메모하세요..."
+        oninput="saveMemo()"></textarea>
+    </div>
+  </div>
+
+  <!-- 포트폴리오 요약 패널 -->
+  <div class="port-panel" id="portPanel">
+    <div class="port-toggle" onclick="togglePort()">
+      <span class="port-toggle-label">◈ 포트폴리오 요약</span>
+      <span class="port-chevron" id="portChevron">▼</span>
+    </div>
+    <div class="port-body" id="portBody" style="display:none;">
+      <div class="port-2col">
+        <div class="port-col-label">미주은</div>
+        <div class="port-col-label">내 팔로우 (÷<span id="port-ratio-display">20</span>)</div>
+        <div class="port-cell">
+          <span class="port-cell-key">총액</span>
+          <input class="port-input-blue" id="port-expert-total" type="text" placeholder="0" oninput="onPortInput(this,'port-expert-total')" />
+        </div>
+        <div class="port-cell">
+          <span class="port-cell-key">총액</span>
+          <span class="port-calc" id="port-my-total">-</span>
+        </div>
+        <div class="port-cell">
+          <span class="port-cell-key">현금</span>
+          <input class="port-input-blue" id="port-expert-cash" type="text" placeholder="0" oninput="onPortInput(this,'port-expert-cash')" />
+        </div>
+        <div class="port-cell">
+          <span class="port-cell-key">현금</span>
+          <span class="port-calc" id="port-my-cash">-</span>
+        </div>
+        <div class="port-cell">
+          <span class="port-cell-key">주식</span>
+          <span class="port-calc" id="port-expert-stock">-</span>
+        </div>
+        <div class="port-cell port-cell-highlight">
+          <span class="port-cell-key">실투자금</span>
+          <span class="port-calc" id="port-my-stock">-</span>
+        </div>
+        <div class="port-cell port-cell-empty"><span class="port-cell-key">-</span><span>-</span></div>
+      </div>
+      <div class="port-divider" style="margin:10px 0;"></div>
+      <div class="port-2col">
+        <div class="port-cell port-cell-empty"><span class="port-cell-key">-</span><span>-</span></div>
+        <div class="port-cell">
+          <span class="port-cell-key">시드머니</span>
+          <input class="port-input-blue" id="port-my-seed" type="text" placeholder="0" oninput="onPortInput(this,'port-my-seed')" />
+        </div>
+        <div class="port-cell port-cell-empty"><span class="port-cell-key">-</span><span>-</span></div>
+        <div class="port-cell port-cell-highlight">
+          <span class="port-cell-key">자유종목</span>
+          <span class="port-calc" id="port-free">-</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="trade-panel">
+    <h3>▶ 거래 입력</h3>
+    <div class="field">
+      <label>종목</label>
+      <select id="tradeStock"></select>
+    </div>
+    <div class="field" style="max-width:130px;">
+      <label>미주은 수량</label>
+      <input type="number" id="tradeQty" min="1" placeholder="수량 입력" />
+    </div>
+    <button class="btn-buy" onclick="executeTrade('buy')">▲ 매수</button>
+    <button class="btn-sell" onclick="executeTrade('sell')">▼ 매도</button>
+    <button class="btn-add-stock" onclick="openAddModal()">+ 종목 추가</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>종목명 (<span id="stockCount">0</span>)</th>
+          <th>미주은</th>
+          <th>내 잔고</th>
+          <th>차이</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="stockTableBody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div class="st-modal-overlay hidden" id="stModalOverlay">
+  <div class="st-modal">
+    <h3>+ 종목 추가</h3>
+    <div class="field">
+      <label>종목명</label>
+      <input type="text" id="newStockName" placeholder="예) 엔비디아" />
+    </div>
+    <div class="field">
+      <label>미주은 수량</label>
+      <input type="number" id="newStockQty" placeholder="0" min="0" />
+    </div>
+    <div class="modal-btns">
+      <button class="btn-add-stock" onclick="closeAddModal()" style="height:38px;">취소</button>
+      <button class="btn-buy" onclick="addStock()" style="height:38px;">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="st-toast" id="stToast">
+  <div class="toast-body">
+    <span id="toastMsg"></span>
+    <button class="toast-undo-btn" id="undoBtn" onclick="undoDelete()" style="display:none;">↩ 되돌리기</button>
+  </div>
+  <div class="toast-bar-wrap">
+    <div class="toast-bar" id="toastBar"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════
+// PORTFOLIO PANEL
+// ══════════════════════════════════
+const PORT_KEY = 'port-data-v1';
+
+function onPortInput(el, id) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  const num = parseInt(raw) || 0;
+  el.value = num ? num.toLocaleString('ko-KR') : '';
+  calcPort();
+}
+
+function getPortVal(id) {
+  const el = document.getElementById(id);
+  if (!el) return 0;
+  return parseInt(el.value.replace(/[^0-9]/g, '')) || 0;
+}
+
+function togglePort() {
+  const body = document.getElementById('portBody');
+  const chevron = document.getElementById('portChevron');
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? 'block' : 'none';
+  chevron.classList.toggle('open', isHidden);
+}
+
+function fmt(n) {
+  if (isNaN(n) || n === null) return '-';
+  return Math.round(n).toLocaleString('ko-KR');
+}
+
+function calcPort() {
+  const ratio = parseFloat(document.getElementById('ratioInput').value) || 20;
+  document.getElementById('port-ratio-display').textContent = ratio;
+  const expertTotal = getPortVal('port-expert-total');
+  const expertCash  = getPortVal('port-expert-cash');
+  const seed        = getPortVal('port-my-seed');
+  const expertStock = expertTotal - expertCash;
+  const myTotal     = expertTotal / ratio;
+  const myCash      = expertCash / ratio;
+  const myStock     = expertStock / ratio;
+  const free        = seed - myStock;
+  document.getElementById('port-expert-stock').textContent = fmt(expertStock);
+  document.getElementById('port-my-total').textContent     = fmt(myTotal);
+  document.getElementById('port-my-cash').textContent      = fmt(myCash);
+  document.getElementById('port-my-stock').textContent     = fmt(myStock);
+  document.getElementById('port-free').textContent         = fmt(free);
+  document.getElementById('port-free').style.color = free < 0 ? '#ff4444' : '#00e676';
+  savePortData();
+}
+
+function savePortData() {
+  const data = {
+    expertTotal: document.getElementById('port-expert-total').value,
+    expertCash:  document.getElementById('port-expert-cash').value,
+    seed:        document.getElementById('port-my-seed').value,
+  };
+  localStorage.setItem(PORT_KEY, JSON.stringify(data));
+}
+
+function loadPortData() {
+  try {
+    const data = JSON.parse(localStorage.getItem(PORT_KEY));
+    if (!data) {
+      document.getElementById('port-expert-total').value = '1,990,768,364';
+      document.getElementById('port-expert-cash').value = '278,596,876';
+      document.getElementById('port-my-seed').value = '108,385,064';
+      calcPort(); return;
+    }
+    const setFmt = (id, val) => {
+      if (!val) return;
+      const num = parseInt(String(val).replace(/[^0-9]/g, '')) || 0;
+      document.getElementById(id).value = num ? num.toLocaleString('ko-KR') : '';
+    };
+    setFmt('port-expert-total', data.expertTotal);
+    setFmt('port-expert-cash', data.expertCash);
+    setFmt('port-my-seed', data.seed);
+    calcPort();
+  } catch(e) {}
+}
+
+// ══════════════════════════════════
+// STOCK TRACKER
+// ══════════════════════════════════
+const ST_KEY = 'stock-tracker-data';
+let RATIO = 15;
+let nextId = 21;
+let stocks = [
+  { id: 1,  name: '샌디스크',        expertQty: 7777, myQty: 4,  pink: true  },
+  { id: 2,  name: '마이크론',        expertQty: 114,  myQty: 4,  pink: true  },
+  { id: 3,  name: '마벨 테크놀로지', expertQty: 344,  myQty: 23, pink: true  },
+  { id: 4,  name: '하이닉스',        expertQty: 56,   myQty: 4,  pink: false },
+  { id: 5,  name: '루멘텀',          expertQty: 88,   myQty: 3,  pink: true  },
+  { id: 6,  name: 'AMD',            expertQty: 148,  myQty: 10, pink: true  },
+  { id: 7,  name: '크레도',          expertQty: 304,  myQty: 21, pink: true  },
+  { id: 8,  name: 'ARM',            expertQty: 180,  myQty: 12, pink: false },
+  { id: 9,  name: '코히런트',        expertQty: 138,  myQty: 7,  pink: false },
+  { id: 10, name: '블룸 에너지',     expertQty: 180,  myQty: 12, pink: false },
+  { id: 11, name: '엔비디아',        expertQty: 219,  myQty: 15, pink: true  },
+  { id: 12, name: '버티브',          expertQty: 150,  myQty: 10, pink: false },
+  { id: 13, name: '웨스턴 디지털',   expertQty: 88,   myQty: 6,  pink: false },
+  { id: 14, name: 'AAOI',           expertQty: 254,  myQty: 17, pink: false },
+  { id: 15, name: '셀레스티카',      expertQty: 105,  myQty: 5,  pink: true  },
+  { id: 16, name: '델 테크놀로지',   expertQty: 100,  myQty: 5,  pink: true  },
+  { id: 17, name: '삼성전자',        expertQty: 180,  myQty: 12, pink: false },
+  { id: 18, name: '브로드컴',        expertQty: 98,   myQty: 7,  pink: true  },
+  { id: 19, name: 'TSMC ADR',       expertQty: 70,   myQty: 5,  pink: true  },
+  { id: 20, name: 'GE버노바',        expertQty: 22,   myQty: 4,  pink: false },
+];
+
+function stSaveData() {
+  localStorage.setItem(ST_KEY, JSON.stringify({ stocks, RATIO, nextId }));
+}
+function stLoadData() {
+  try {
+    const saved = localStorage.getItem(ST_KEY);
+    if (saved) {
+      const d = JSON.parse(saved);
+      if (d.stocks) stocks = d.stocks;
+      if (d.RATIO) { RATIO = d.RATIO; document.getElementById('ratioInput').value = RATIO; }
+      if (d.nextId) nextId = d.nextId;
+    }
+  } catch(e) {}
+}
+
+function calcDiff(s) {
+  return Math.round((s.expertQty / RATIO - s.myQty) * 100) / 100;
+}
+
+function render() { renderTable(); renderSelect(); stSaveData(); }
+
+function renderTable() {
+  const tbody = document.getElementById('stockTableBody');
+  document.getElementById('stockCount').textContent = stocks.length;
+  if (stocks.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">종목이 없습니다.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = stocks.map(s => {
+    const diff = parseFloat(calcDiff(s).toFixed(1));
+    const diffClass = (diff > -1 && diff <= 0) ? 'ratio-zero' : diff > 0 ? 'ratio-pos' : 'ratio-neg';
+    const diffText = diff > 0 ? `+${diff.toFixed(1)}` : `${diff.toFixed(1)}`;
+    return `<tr id="row-${s.id}" draggable="true" data-id="${s.id}">
+      <td style="padding:8px 6px;"><span class="drag-handle" title="드래그하여 순서 변경">⬍</span></td>
+      <td class="stock-name"
+        onclick="editName(${s.id},this)"
+        style="${s.pink ? 'color:#ff80ab;' : ''}"
+        oncontextmenu="event.preventDefault();confirmDeleteStock(${s.id},this);"
+        ontouchstart="startLongPress(${s.id},this)"
+        ontouchend="cancelLongPress()"
+        ontouchmove="cancelLongPress()"
+      >${s.name}</td>
+      <td class="expert-qty"><input class="inline-input" type="number" value="${s.expertQty}" onchange="updateExpert(${s.id}, this.value)" style="color:#ffd740;"></td>
+      <td style="white-space:nowrap;">
+        <input class="inline-input" type="number" value="${s.myQty}" onchange="updateMyQty(${s.id}, this.value)" style="color:#00e676;width:40px;text-align:center;">
+        <button onclick="adjustMyQty(${s.id},1)" style="background:none;border:1px solid #2a3a4a;color:#5a6a7a;width:20px;height:20px;border-radius:4px;cursor:pointer;font-size:12px;line-height:1;padding:0;margin-left:4px;">+</button>
+        <button onclick="adjustMyQty(${s.id},-1)" style="background:none;border:1px solid #2a3a4a;color:#5a6a7a;width:20px;height:20px;border-radius:4px;cursor:pointer;font-size:12px;line-height:1;padding:0;margin-left:2px;">−</button>
+      </td>
+      <td class="${diffClass}" style="font-weight:700;">${diff === 0 ? '0' : diffText}</td>
+    </tr>`;
+  }).join('');
+  initDrag();
+}
+
+let dragSrcId = null, touchDragEl = null, touchClone = null, touchStartY = 0;
+
+function initDrag() {
+  const tbody = document.getElementById('stockTableBody');
+  const rows = Array.from(tbody.querySelectorAll('tr[data-id]'));
+  rows.forEach(row => {
+    const handle = row.querySelector('.drag-handle');
+    handle.addEventListener('mousedown', () => row.setAttribute('draggable', true));
+    row.addEventListener('dragstart', e => {
+      dragSrcId = parseInt(row.dataset.id);
+      setTimeout(() => row.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      tbody.querySelectorAll('tr').forEach(r => r.classList.remove('drag-over'));
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      tbody.querySelectorAll('tr').forEach(r => r.classList.remove('drag-over'));
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      const targetId = parseInt(row.dataset.id);
+      if (dragSrcId === null || dragSrcId === targetId) return;
+      reorderStocks(dragSrcId, targetId); dragSrcId = null;
+    });
+    handle.addEventListener('touchstart', e => {
+      touchDragEl = row; touchStartY = e.touches[0].clientY;
+      touchDragEl.classList.add('dragging');
+      touchClone = row.cloneNode(true);
+      touchClone.style.cssText = `position:fixed;left:0;right:0;opacity:0.85;z-index:9999;background:#1e2530;pointer-events:none;`;
+      touchClone.style.top = row.getBoundingClientRect().top + 'px';
+      document.body.appendChild(touchClone);
+    }, { passive: true });
+    handle.addEventListener('touchmove', e => {
+      if (!touchDragEl) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const deltaY = touch.clientY - touchStartY;
+      touchClone.style.top = (touchDragEl.getBoundingClientRect().top + deltaY) + 'px';
+      tbody.querySelectorAll('tr[data-id]').forEach(r => r.classList.remove('drag-over'));
+      const elBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetRow = elBelow ? elBelow.closest('tr[data-id]') : null;
+      if (targetRow && targetRow !== touchDragEl) targetRow.classList.add('drag-over');
+    }, { passive: false });
+    handle.addEventListener('touchend', e => {
+      if (!touchDragEl) return;
+      const touch = e.changedTouches[0];
+      const elBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetRow = elBelow ? elBelow.closest('tr[data-id]') : null;
+      if (targetRow && targetRow !== touchDragEl) reorderStocks(parseInt(touchDragEl.dataset.id), parseInt(targetRow.dataset.id));
+      touchDragEl.classList.remove('dragging');
+      tbody.querySelectorAll('tr').forEach(r => r.classList.remove('drag-over'));
+      if (touchClone) { touchClone.remove(); touchClone = null; }
+      touchDragEl = null;
+    });
+  });
+}
+
+function reorderStocks(srcId, tgtId) {
+  const srcIdx = stocks.findIndex(s => s.id === srcId);
+  const tgtIdx = stocks.findIndex(s => s.id === tgtId);
+  if (srcIdx === -1 || tgtIdx === -1) return;
+  const [moved] = stocks.splice(srcIdx, 1);
+  stocks.splice(tgtIdx, 0, moved);
+  render();
+}
+
+function renderSelect() {
+  const sel = document.getElementById('tradeStock');
+  const prev = sel.value;
+  sel.innerHTML = stocks.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  if (prev) sel.value = prev;
+}
+
+function executeTrade(type) {
+  const stockId = parseInt(document.getElementById('tradeStock').value);
+  const qty = parseInt(document.getElementById('tradeQty').value);
+  if (!stockId || isNaN(qty) || qty <= 0) { showStToast('종목과 수량을 올바르게 입력해주세요.', true); return; }
+  const stock = stocks.find(s => s.id === stockId);
+  if (!stock) return;
+  saveHistory();
+  const oldExpert = stock.expertQty;
+  if (type === 'buy') { stock.expertQty += qty; }
+  else {
+    if (stock.expertQty - qty < 0) { showStToast('미주은 잔고가 부족합니다.', true); return; }
+    stock.expertQty -= qty;
+  }
+  render();
+  const row = document.getElementById(`row-${stockId}`);
+  if (row) { row.classList.remove('flash-buy','flash-sell'); void row.offsetWidth; row.classList.add(type==='buy'?'flash-buy':'flash-sell'); }
+  const change = stock.expertQty - oldExpert;
+  const sign = change >= 0 ? '+' : '';
+  showStToast(`${stock.name} ${type==='buy'?'▲ 매수':'▼ 매도'} — 미주은: ${stock.expertQty} (${sign}${change})`);
+  document.getElementById('tradeQty').value = '';
+}
+
+function updateExpert(id, val) {
+  const stock = stocks.find(s => s.id === id); if (!stock) return;
+  const n = parseFloat(val); if (isNaN(n) || n < 0) return;
+  stock.expertQty = n; renderTable(); stSaveData();
+}
+function adjustMyQty(id, delta) {
+  const stock = stocks.find(s => s.id === id); if (!stock) return;
+  saveHistory();
+  stock.myQty = Math.max(0, stock.myQty + delta);
+  renderTable(); stSaveData();
+}
+function updateMyQty(id, val) {
+  const stock = stocks.find(s => s.id === id); if (!stock) return;
+  const n = parseFloat(val); if (isNaN(n) || n < 0) return;
+  saveHistory();
+  stock.myQty = n; renderTable(); stSaveData();
+}
+
+// UNDO/REDO
+const MAX_HISTORY = 50;
+let history = [], historyIdx = -1;
+
+function saveHistory() {
+  const state = JSON.stringify(stocks.map(s => ({ id: s.id, expertQty: s.expertQty, myQty: s.myQty, name: s.name, pink: s.pink })));
+  history = history.slice(0, historyIdx + 1);
+  history.push(state);
+  if (history.length > MAX_HISTORY) history.shift();
+  historyIdx = history.length - 1;
+  updateUndoRedo();
+}
+
+function undo() {
+  if (historyIdx <= 0) return;
+  historyIdx--;
+  const state = JSON.parse(history[historyIdx]);
+  state.forEach(s => {
+    const stock = stocks.find(x => x.id === s.id);
+    if (stock) { stock.expertQty = s.expertQty; stock.myQty = s.myQty; stock.name = s.name; stock.pink = s.pink; }
+  });
+  renderTable(); stSaveData(); updateUndoRedo();
+}
+
+function redo() {
+  if (historyIdx >= history.length - 1) return;
+  historyIdx++;
+  const state = JSON.parse(history[historyIdx]);
+  state.forEach(s => {
+    const stock = stocks.find(x => x.id === s.id);
+    if (stock) { stock.expertQty = s.expertQty; stock.myQty = s.myQty; stock.name = s.name; stock.pink = s.pink; }
+  });
+  renderTable(); stSaveData(); updateUndoRedo();
+}
+
+function updateUndoRedo() {
+  const u = document.getElementById('btn-undo');
+  const r = document.getElementById('btn-redo');
+  if (u) u.style.opacity = historyIdx <= 0 ? '0.3' : '0.7';
+  if (r) r.style.opacity = historyIdx >= history.length - 1 ? '0.3' : '0.7';
+}
+
+function editName(id, el) {
+  const existing = document.getElementById('name-popup');
+  if (existing) { existing.remove(); if (existing.dataset.id == id) return; }
+  const stock = stocks.find(s => s.id === id); if (!stock) return;
+  const popup = document.createElement('div');
+  popup.id = 'name-popup';
+  popup.dataset.id = id;
+  popup.style.cssText = `position:fixed;background:#0d1117;border:1px solid #2a3a4a;border-radius:8px;padding:8px 10px;z-index:9999;display:flex;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,0.5);`;
+  popup.innerHTML = `<input type="checkbox" id="pink-check-${id}" ${stock.pink ? 'checked' : ''} style="width:16px;height:16px;accent-color:#ff80ab;cursor:pointer;">`;
+  document.body.appendChild(popup);
+  function positionPopup() {
+    const rect = el.getBoundingClientRect();
+    popup.style.top = (rect.bottom + 4) + 'px';
+    popup.style.left = Math.max(8, rect.left) + 'px';
+  }
+  positionPopup();
+  const scrollEl = document.querySelector('.st-wrap') || window;
+  scrollEl.addEventListener('scroll', positionPopup);
+  document.getElementById(`pink-check-${id}`).addEventListener('change', function() {
+    stock.pink = this.checked; renderTable(); stSaveData();
+    scrollEl.removeEventListener('scroll', positionPopup); popup.remove();
+  });
+  setTimeout(() => {
+    document.addEventListener('click', function handler(e) {
+      if (!popup.contains(e.target) && e.target !== el) {
+        scrollEl.removeEventListener('scroll', positionPopup); popup.remove();
+        document.removeEventListener('click', handler);
+      }
+    });
+  }, 10);
+}
+
+function openAddModal() { document.getElementById('stModalOverlay').classList.remove('hidden'); document.getElementById('newStockName').focus(); }
+function closeAddModal() {
+  document.getElementById('stModalOverlay').classList.add('hidden');
+  document.getElementById('newStockName').value = '';
+  document.getElementById('newStockQty').value = '';
+}
+function addStock() {
+  const name = document.getElementById('newStockName').value.trim();
+  const qty = parseFloat(document.getElementById('newStockQty').value) || 0;
+  if (!name) { showStToast('종목명을 입력해주세요.', true); return; }
+  stocks.push({ id: nextId++, name, expertQty: qty, myQty: 0 });
+  closeAddModal(); render(); showStToast(`${name} 추가됨`);
+}
+
+function toggleMemo() {
+  const body = document.getElementById('memoBody');
+  const chevron = document.getElementById('memoChevron');
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? 'block' : 'none';
+  chevron.classList.toggle('open', isHidden);
+}
+
+function getDateStamp() {
+  const now = new Date();
+  return `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}ver`;
+}
+
+function updateMemoTitle(firstLine) {
+  const el = document.getElementById('memoTitle');
+  if (!el) return;
+  const match = firstLine.match(/^(\d{4}\.\d{2}\.\d{2}ver)\s*-?\s*(.*)/);
+  if (match) { el.textContent = `· ${match[1]} · ${match[2] || ''}`; }
+  else { el.textContent = firstLine ? `· ${firstLine}` : ''; }
+}
+
+function saveMemo() {
+  const textarea = document.getElementById('memoText');
+  localStorage.setItem('tracker-memo', textarea.value);
+}
+
+function loadMemo() {
+  const saved = localStorage.getItem('tracker-memo');
+  const textarea = document.getElementById('memoText');
+  textarea.value = saved || '';
+  const titleSaved = localStorage.getItem('tracker-memo-title');
+  if (titleSaved) { updateMemoTitle(titleSaved); }
+  else {
+    const initial = getDateStamp() + ' - 메모장 생성';
+    localStorage.setItem('tracker-memo-title', initial); updateMemoTitle(initial);
+  }
+}
+
+function toggleVersionPopup(e) {
+  e.stopPropagation();
+  const p = document.getElementById('versionPopup');
+  const isHidden = p.style.display === 'none';
+  p.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) {
+    setTimeout(() => {
+      document.addEventListener('click', function handler(e) {
+        if (!p.contains(e.target)) { p.style.display = 'none'; document.removeEventListener('click', handler); }
+      });
+    }, 10);
+  }
+}
+
+function setLastUpdate() {
+  const now = new Date();
+  const y = now.getFullYear(), m = String(now.getMonth() + 1).padStart(2, '0'), d = String(now.getDate()).padStart(2, '0');
+  const dateStr = `${y}.${m}.${d}`;
+  document.getElementById('lastUpdateText').textContent = 'last update · ' + dateStr;
+  localStorage.setItem('last-update-date', dateStr);
+}
+
+function loadLastUpdate() {
+  const saved = localStorage.getItem('last-update-date');
+  if (saved) document.getElementById('lastUpdateText').textContent = 'last update · ' + saved;
+}
+
+function updateRatio() {
+  const v = parseInt(document.getElementById('ratioInput').value);
+  if (v && v > 0) { RATIO = v; render(); calcPort(); }
+}
+
+let longPressTimer = null;
+function startLongPress(id, el) { longPressTimer = setTimeout(() => confirmDeleteStock(id, el), 600); }
+function cancelLongPress() { clearTimeout(longPressTimer); }
+
+function confirmDeleteStock(id, el) {
+  const stock = stocks.find(s => s.id === id); if (!stock) return;
+  const existing = document.getElementById('delete-popup');
+  if (existing) existing.remove();
+  const popup = document.createElement('div');
+  popup.id = 'delete-popup';
+  popup.style.cssText = `position:fixed;background:#0d1117;border:1px solid #ff5252;border-radius:10px;padding:12px 16px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.6);font-family:'JetBrains Mono',monospace;`;
+  popup.innerHTML = `
+    <div style="font-size:12px;color:#c9d1d9;margin-bottom:10px;"><strong>${stock.name}</strong> 삭제할까요?</div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="deleteStock(${id});document.getElementById('delete-popup').remove();"
+        style="flex:1;padding:6px;background:#ff5252;border:none;border-radius:6px;color:white;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;">삭제</button>
+      <button onclick="document.getElementById('delete-popup').remove();"
+        style="flex:1;padding:6px;background:#1e2a38;border:1px solid #2a3a4a;border-radius:6px;color:#c9d1d9;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;">취소</button>
+    </div>`;
+  document.body.appendChild(popup);
+  const rect = el.getBoundingClientRect();
+  popup.style.left = Math.max(8, rect.left) + 'px';
+  popup.style.top = (rect.bottom + 6) + 'px';
+  setTimeout(() => {
+    document.addEventListener('click', function handler(e) {
+      if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', handler); }
+    });
+  }, 10);
+}
+
+let undoStock = null, undoStockIdx = null, undoTimer = null;
+function deleteStock(id) {
+  const idx = stocks.findIndex(s => s.id === id);
+  const stock = stocks[idx]; if (!stock) return;
+  saveHistory(); undoStockIdx = idx;
+  stocks = stocks.filter(s => s.id !== id);
+  render(); showUndoStToast(stock);
+}
+function showUndoStToast(stock) {
+  undoStock = stock;
+  const btn = document.getElementById('undoBtn');
+  const bar = document.getElementById('toastBar');
+  btn.style.display = 'inline';
+  clearTimeout(undoTimer);
+  bar.className = 'toast-bar'; void bar.offsetWidth; bar.className = 'toast-bar running';
+  showStToast(`${stock.name} 삭제됨`);
+  undoTimer = setTimeout(() => { btn.style.display='none'; undoStock=null; undoStockIdx=null; document.getElementById('stToast').className='st-toast'; }, 5000);
+}
+function undoDelete() {
+  if (!undoStock) return;
+  clearTimeout(undoTimer);
+  const restored = undoStock;
+  const idx = undoStockIdx !== null ? undoStockIdx : stocks.length;
+  stocks.splice(idx, 0, restored);
+  document.getElementById('undoBtn').style.display='none';
+  document.getElementById('stToast').className='st-toast';
+  undoStock = null; undoStockIdx = null;
+  render(); showStToast('↩ '+restored.name+' 복구됨');
+}
+
+let stToastTimer;
+function showStToast(msg, isError=false) {
+  const t = document.getElementById('stToast');
+  const bar = document.getElementById('toastBar');
+  document.getElementById('toastMsg').textContent = msg;
+  t.className = 'st-toast show' + (isError?' error':'');
+  clearTimeout(stToastTimer);
+  if (!undoStock) {
+    bar.className = 'toast-bar'; void bar.offsetWidth; bar.className = 'toast-bar running';
+    stToastTimer = setTimeout(() => { t.className='st-toast'; }, 2800);
+  }
+}
+
+document.getElementById('stModalOverlay').addEventListener('click', function(e) { if(e.target===this) closeAddModal(); });
+
+// INIT
+stLoadData();
+render();
+loadPortData();
+saveHistory();
+updateUndoRedo();
+loadLastUpdate();
+loadMemo();
+</script>
+</body>
+</html>

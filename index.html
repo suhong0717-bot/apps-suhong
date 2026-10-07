@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AI Tool 모음">
+<meta name="theme-color" content="#0e0e14">
+<link rel="manifest" href="launcher-manifest.json">
+<title>AI Tool 모음</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0e0e14;
+  --surface: #16161f;
+  --surface2: #1c1c2a;
+  --border: rgba(255,255,255,0.07);
+  --text: #f0f0f8;
+  --muted: #6c6c88;
+  --accent: #7c6af7;
+  --accent2: #a78bfa;
+}
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── 배경 노이즈/별 패턴 ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(124,106,247,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(167,139,250,0.08) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 40px;
+}
+
+/* ── 헤더 ── */
+.hero {
+  text-align: center;
+  padding: 56px 20px 32px;
+}
+
+.hero-icon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #7c6af7, #a78bfa);
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  margin: 0 auto 20px;
+  box-shadow: 0 8px 32px rgba(124,106,247,0.4);
+}
+
+.hero-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #f0f0f8, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.hero-sub {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+  letter-spacing: 0.2px;
+}
+
+/* ── 섹션 라벨 ── */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 24px;
+  margin-bottom: 14px;
+}
+
+/* ── 앱 그리드 ── */
+.app-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 0 16px;
+  margin-bottom: 32px;
+}
+
+.app-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px 18px;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.app-card:active {
+  transform: scale(0.97);
+}
+
+.app-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 20px 20px 0 0;
+  background: var(--card-accent, #7c6af7);
+  opacity: 0.8;
+}
+
+.app-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, var(--card-glow, rgba(124,106,247,0.1)) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.app-icon {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.app-info { flex: 1; }
+
+.app-name {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 3px;
+  letter-spacing: -0.2px;
+}
+
+.app-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.app-arrow {
+  font-size: 12px;
+  color: var(--muted);
+  align-self: flex-end;
+  margin-top: 4px;
+}
+
+/* 각 카드별 색상 */
+.card-follow  { --card-accent: #00e676; --card-glow: rgba(0,230,118,0.1); }
+.card-asset   { --card-accent: #60a5fa; --card-glow: rgba(96,165,250,0.1); }
+.card-soxl    { --card-accent: #ff80ab; --card-glow: rgba(255,128,171,0.1); }
+.card-wedding { --card-accent: #fbbf24; --card-glow: rgba(251,191,36,0.1); }
+
+.card-follow .app-name  { color: #00e676; }
+.card-asset .app-name   { color: #60a5fa; }
+.card-soxl .app-name    { color: #ff80ab; }
+.card-wedding .app-name { color: #fbbf24; }
+
+/* ── 하단 구분선 & 버전 ── */
+.footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+/* ── 로딩 스플래시 ── */
+.splash {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: opacity 0.4s ease;
+}
+
+.splash.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-icon {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, #7c6af7, #a78bfa);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  box-shadow: 0 12px 40px rgba(124,106,247,0.5);
+  animation: splashPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes splashPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+.splash-title {
+  margin-top: 20px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+</style>
+</head>
+<body>
+
+<!-- 스플래시 -->
+<div class="splash" id="splash">
+  <div class="splash-icon">🤖</div>
+  <div class="splash-title">AI Tool 모음</div>
+</div>
+
+<div class="wrap">
+  <!-- 히어로 -->
+  <div class="hero">
+    <div class="hero-icon">🤖</div>
+    <div class="hero-title">AI Tool 모음</div>
+    <div class="hero-sub">내가 만든 나만의 금융 도구 모음</div>
+  </div>
+
+  <div class="section-label">도구 목록</div>
+
+  <!-- 앱 그리드 -->
+  <div class="app-grid">
+
+    <a class="app-card card-follow" href="follow.html">
+      <div class="app-icon">📈</div>
+      <div class="app-info">
+        <div class="app-name">팔로우 트래커</div>
+        <div class="app-desc">전문가 주식 팔로우 · 비율 계산</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card card-asset" href="asset.html">
+      <div class="app-icon">💰</div>
+      <div class="app-info">
+        <div class="app-name">자산 관리</div>
+        <div class="app-desc">투자·고정·부동산·부채 대시보드</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card card-soxl" href="soxl.html">
+      <div class="app-icon">🚀</div>
+      <div class="app-info">
+        <div class="app-name">SOXL 트래커</div>
+        <div class="app-desc">A·B계좌 손익 비교 차트</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card card-wedding" href="wedding.html">
+      <div class="app-icon">🎊</div>
+      <div class="app-info">
+        <div class="app-name">축의금 장부</div>
+        <div class="app-desc">결혼식 축의금 현장·입금 기록</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+  </div>
+
+  <div class="footer">AI Tool 모음 · v10.07 · suhong</div>
+</div>
+
+<script>
+// 스플래시 제거
+window.addEventListener('load', () => {
+  const splash = document.getElementById('splash');
+  setTimeout(() => {
+    splash.classList.add('fade-out');
+    setTimeout(() => splash.remove(), 400);
+  }, 600);
+});
+
+// PWA 서비스워커 등록
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('launcher-sw.js');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>축의금 장부</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif;
+    background: #fafaf9;
+    color: #292524;
+  }
+  .container { max-width: 768px; margin: 0 auto; padding: 0 16px; }
+
+  /* 뒤로가기 버튼 */
+  .back-btn {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 200;
+    background: rgba(136,19,55,0.12);
+    color: #881337;
+    border: 1px solid rgba(136,19,55,0.25);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background 0.15s;
+  }
+  .back-btn:active { background: rgba(136,19,55,0.22); }
+
+  /* 버전 배지 */
+  .version-badge {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 200;
+    background: rgba(136,19,55,0.1);
+    color: rgba(136,19,55,0.7);
+    border: 1px solid rgba(136,19,55,0.18);
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .sticky-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fafaf9;
+    border-bottom: 1px solid #e7e5e4;
+  }
+  .sticky-bar .container { padding-top: 52px; padding-bottom: 12px; }
+
+  .search-wrap { position: relative; }
+  .search-wrap svg {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 16px; height: 16px; color: #a8a29e; pointer-events: none;
+  }
+  #searchInput {
+    width: 100%;
+    padding: 9px 36px;
+    border: 1px solid #e7e5e4;
+    border-radius: 9999px;
+    font-size: 14px;
+    background: #fff;
+    color: #292524;
+    outline: none;
+  }
+  #searchInput:focus {
+    border-color: #881337;
+    box-shadow: 0 0 0 3px rgba(136,19,55,0.15);
+  }
+  #clearBtn {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    display: none; border: none; background: none; cursor: pointer;
+    font-size: 18px; line-height: 1; color: #a8a29e; padding: 4px;
+  }
+  #clearBtn:hover { color: #292524; }
+
+  .filters {
+    display: flex; gap: 6px; overflow-x: auto;
+    margin-top: 10px; padding-bottom: 4px;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .filter-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #e7e5e4;
+    background: #fff;
+    color: #57534e;
+    cursor: pointer;
+  }
+  .filter-btn.active { background: #881337; color: #fff; border-color: #881337; }
+
+  .count-text { margin-top: 8px; padding: 0 2px; font-size: 12px; color: #78716c; }
+  .count-text strong { color: #881337; font-weight: 600; }
+
+  .content { padding-top: 16px; padding-bottom: 24px; }
+  .section { margin-bottom: 24px; }
+  .section-header {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 0 4px; margin-bottom: 8px;
+  }
+  .section-header .title { font-size: 14px; font-weight: 700; color: #292524; }
+  .section-header .sub-count { font-size: 12px; color: #a8a29e; }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid #e7e5e4;
+    border-radius: 8px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: #881337; color: #fff; }
+  th {
+    white-space: nowrap; padding: 8px 10px; font-weight: 500;
+  }
+  th:nth-child(1), th:nth-child(3), th:nth-child(4), th:nth-child(6) { text-align: center; }
+  th:nth-child(2) { text-align: left; }
+  th:nth-child(5) { text-align: right; }
+
+  td { white-space: nowrap; padding: 6px 10px; }
+  tr.row-white { background: #fff; }
+  tr.row-stripe { background: #fafaf9; }
+
+  .td-no { text-align: center; color: #a8a29e; font-variant-numeric: tabular-nums; }
+  .td-name { text-align: left; font-weight: 500; color: #292524; }
+  .td-cat { text-align: center; font-weight: 500; }
+  .td-method { text-align: center; color: #78716c; }
+  .td-amt { text-align: right; font-variant-numeric: tabular-nums; color: #292524; }
+  .td-note { text-align: center; color: #a8a29e; }
+
+  .cat-bu { color: #0369a1; }
+  .cat-mo { color: #be123c; }
+  .cat-hyung { color: #047857; }
+  .cat-su { color: #b45309; }
+
+  .empty {
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; padding: 64px 0; text-align: center;
+  }
+  .empty .icon { font-size: 28px; }
+  .empty p { font-size: 14px; color: #a8a29e; }
+
+  @media (min-width: 640px) {
+    table { font-size: 14px; }
+    th, td { padding: 8px 12px; }
+    .filter-btn { font-size: 14px; padding: 7px 14px; }
+    .count-text { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="index.html">← AI Tool 모음</a>
+<div class="version-badge">v10.07</div>
+
+  <div class="sticky-bar">
+    <div class="container">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="searchInput" type="text" placeholder="이름으로 검색" autocomplete="off">
+        <button id="clearBtn" aria-label="검색어 지우기">×</button>
+      </div>
+      <div class="filters" id="filters">
+        <button class="filter-btn active" data-filter="all">전체</button>
+        <button class="filter-btn" data-filter="method:현장">현장</button>
+        <button class="filter-btn" data-filter="method:입금">입금</button>
+        <button class="filter-btn" data-filter="category:부">부</button>
+        <button class="filter-btn" data-filter="category:모">모</button>
+        <button class="filter-btn" data-filter="category:형">형</button>
+        <button class="filter-btn" data-filter="category:수">수홍</button>
+      </div>
+      <div class="count-text">총 <strong id="countNum">0</strong>명</div>
+    </div>
+  </div>
+
+  <div class="container content">
+    <div class="section" id="onsiteSection">
+      <div class="section-header">
+        <span class="title">📍 현장</span>
+        <span class="sub-count" id="onsiteCount"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>No.</th><th>이름</th><th>구분</th><th>수령방식</th><th>금액</th><th>비고</th>
+            </tr>
+          </thead>
+          <tbody id="onsiteBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="transferSection">
+      <div class="section-header">
+        <span class="title">💳 입금</span>
+        <span class="sub-count" id="transferCount"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>No.</th><th>이름</th><th>구분</th><th>수령방식</th><th>금액</th><th>비고</th>
+            </tr>
+          </thead>
+          <tbody id="transferBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="empty" id="emptyState">
+      <div class="icon">🔍</div>
+      <p>검색 결과가 없습니다</p>
+    </div>
+  </div>
+
+<script>
+const DATA = [
+  {n:1,name:'김다남',cat:'모',method:'현장',amt:100000,note:''},
+  {n:2,name:'한미영',cat:'모',method:'현장',amt:100000,note:''},
+  {n:3,name:'이춘분',cat:'모',method:'현장',amt:100000,note:''},
+  {n:4,name:'임미선',cat:'모',method:'현장',amt:100000,note:''},
+  {n:5,name:'무궁화',cat:'모',method:'현장',amt:100000,note:''},
+  {n:6,name:'심준형',cat:'수',method:'현장',amt:100000,note:''},
+  {n:7,name:'이호준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:8,name:'박금숙',cat:'모',method:'현장',amt:100000,note:''},
+  {n:9,name:'고영민',cat:'수',method:'현장',amt:100000,note:''},
+  {n:10,name:'김윤기',cat:'모',method:'현장',amt:50000,note:''},
+  {n:11,name:'김석영',cat:'수',method:'현장',amt:100000,note:''},
+  {n:12,name:'박병성',cat:'부',method:'현장',amt:100000,note:''},
+  {n:13,name:'조균행',cat:'모',method:'현장',amt:100000,note:''},
+  {n:14,name:'박병준',cat:'부',method:'현장',amt:100000,note:''},
+  {n:15,name:'박찬이',cat:'수',method:'현장',amt:150000,note:''},
+  {n:16,name:'최종우',cat:'수',method:'현장',amt:150000,note:''},
+  {n:17,name:'박현주',cat:'수',method:'현장',amt:150000,note:''},
+  {n:18,name:'곽희영',cat:'수',method:'현장',amt:100000,note:''},
+  {n:19,name:'이주은',cat:'수',method:'현장',amt:100000,note:''},
+  {n:20,name:'최승욱',cat:'형',method:'현장',amt:100000,note:''},
+  {n:21,name:'신재욱',cat:'수',method:'현장',amt:100000,note:''},
+  {n:22,name:'이동훈',cat:'수',method:'현장',amt:100000,note:''},
+  {n:23,name:'배형준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:24,name:'박창희',cat:'부',method:'현장',amt:150000,note:''},
+  {n:25,name:'박수정 이한수',cat:'부',method:'현장',amt:150000,note:''},
+  {n:26,name:'박준역',cat:'부',method:'현장',amt:100000,note:''},
+  {n:27,name:'박병조',cat:'부',method:'현장',amt:500000,note:''},
+  {n:28,name:'박종근',cat:'모',method:'현장',amt:300000,note:'?'},
+  {n:29,name:'정경남',cat:'부',method:'현장',amt:500000,note:''},
+  {n:30,name:'박병영',cat:'부',method:'현장',amt:300000,note:''},
+  {n:31,name:'하창수',cat:'부',method:'현장',amt:200000,note:''},
+  {n:32,name:'이재우',cat:'수',method:'현장',amt:100000,note:''},
+  {n:33,name:'이승희',cat:'수',method:'현장',amt:200000,note:''},
+  {n:34,name:'정효영',cat:'수',method:'현장',amt:200000,note:''},
+  {n:35,name:'유민지',cat:'수',method:'현장',amt:100000,note:''},
+  {n:36,name:'오윤환',cat:'수',method:'현장',amt:100000,note:''},
+  {n:37,name:'백정훈',cat:'수',method:'현장',amt:200000,note:''},
+  {n:38,name:'박재령',cat:'수',method:'현장',amt:50000,note:''},
+  {n:39,name:'서유현',cat:'부',method:'현장',amt:100000,note:''},
+  {n:40,name:'박성범',cat:'부',method:'현장',amt:100000,note:''},
+  {n:41,name:'박태호',cat:'부',method:'현장',amt:150000,note:''},
+  {n:42,name:'한진현',cat:'수',method:'현장',amt:200000,note:''},
+  {n:43,name:'장효정',cat:'수',method:'현장',amt:100000,note:''},
+  {n:44,name:'조혁제',cat:'수',method:'현장',amt:50000,note:''},
+  {n:45,name:'손민주',cat:'수',method:'현장',amt:70000,note:''},
+  {n:46,name:'남희재 이민주',cat:'수',method:'현장',amt:200000,note:''},
+  {n:47,name:'김은영',cat:'모',method:'현장',amt:100000,note:''},
+  {n:48,name:'이해숙',cat:'모',method:'현장',amt:100000,note:''},
+  {n:49,name:'차현우',cat:'수',method:'현장',amt:100000,note:''},
+  {n:50,name:'박기선',cat:'부',method:'현장',amt:100000,note:''},
+  {n:51,name:'최희수',cat:'부',method:'현장',amt:100000,note:''},
+  {n:52,name:'박병용',cat:'부',method:'현장',amt:100000,note:''},
+  {n:53,name:'박용',cat:'부',method:'현장',amt:100000,note:'?'},
+  {n:54,name:'이지형',cat:'형',method:'현장',amt:200000,note:'?'},
+  {n:55,name:'유승철',cat:'수',method:'현장',amt:100000,note:''},
+  {n:56,name:'이강혁',cat:'수',method:'현장',amt:100000,note:''},
+  {n:57,name:'박지훈',cat:'수',method:'현장',amt:100000,note:''},
+  {n:58,name:'허태무',cat:'부',method:'현장',amt:100000,note:''},
+  {n:59,name:'김장용',cat:'모',method:'현장',amt:200000,note:''},
+  {n:60,name:'김선우',cat:'모',method:'현장',amt:100000,note:''},
+  {n:61,name:'조창민',cat:'부',method:'현장',amt:200000,note:''},
+  {n:62,name:'김생환',cat:'부',method:'현장',amt:100000,note:''},
+  {n:63,name:'조옥순',cat:'부',method:'현장',amt:100000,note:''},
+  {n:64,name:'정우석',cat:'수',method:'현장',amt:100000,note:''},
+  {n:65,name:'김성현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:66,name:'허인무',cat:'부',method:'현장',amt:100000,note:''},
+  {n:67,name:'정훈',cat:'수',method:'현장',amt:100000,note:''},
+  {n:68,name:'박선규',cat:'부',method:'현장',amt:100000,note:''},
+  {n:69,name:'박봉기',cat:'부',method:'현장',amt:100000,note:''},
+  {n:70,name:'윤현민',cat:'수',method:'현장',amt:100000,note:''},
+  {n:71,name:'서종권',cat:'부',method:'현장',amt:100000,note:''},
+  {n:72,name:'김종복',cat:'부',method:'현장',amt:100000,note:''},
+  {n:73,name:'박병원',cat:'부',method:'현장',amt:150000,note:''},
+  {n:74,name:'김현철',cat:'수',method:'현장',amt:150000,note:''},
+  {n:75,name:'김임태',cat:'부',method:'현장',amt:100000,note:''},
+  {n:76,name:'박꽃나래',cat:'부',method:'현장',amt:100000,note:''},
+  {n:77,name:'육인자',cat:'부',method:'현장',amt:300000,note:''},
+  {n:78,name:'류석진',cat:'모',method:'현장',amt:500000,note:''},
+  {n:79,name:'이종윤',cat:'수',method:'현장',amt:100000,note:''},
+  {n:80,name:'정혜정',cat:'모',method:'현장',amt:100000,note:''},
+  {n:81,name:'정지현',cat:'모',method:'현장',amt:100000,note:''},
+  {n:82,name:'정혜진',cat:'모',method:'현장',amt:100000,note:''},
+  {n:83,name:'정재훈',cat:'모',method:'현장',amt:300000,note:''},
+  {n:84,name:'김문주',cat:'모',method:'현장',amt:100000,note:''},
+  {n:85,name:'박영남',cat:'부',method:'현장',amt:100000,note:''},
+  {n:86,name:'송동수',cat:'수',method:'현장',amt:100000,note:''},
+  {n:87,name:'이선아',cat:'수',method:'현장',amt:100000,note:''},
+  {n:88,name:'박시은',cat:'수',method:'현장',amt:100000,note:''},
+  {n:89,name:'송찬양',cat:'수',method:'현장',amt:100000,note:''},
+  {n:90,name:'신소빈',cat:'수',method:'현장',amt:100000,note:''},
+  {n:91,name:'서재윤',cat:'수',method:'현장',amt:100000,note:''},
+  {n:92,name:'조규현',cat:'부',method:'현장',amt:300000,note:''},
+  {n:93,name:'전문배',cat:'수',method:'현장',amt:100000,note:''},
+  {n:94,name:'유광호',cat:'모',method:'현장',amt:200000,note:''},
+  {n:95,name:'김성철',cat:'수',method:'현장',amt:150000,note:''},
+  {n:96,name:'최환영 이미식',cat:'모',method:'현장',amt:200000,note:'?'},
+  {n:97,name:'신호범',cat:'수',method:'현장',amt:100000,note:''},
+  {n:98,name:'문민준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:99,name:'이성구',cat:'수',method:'현장',amt:100000,note:''},
+  {n:100,name:'이동욱',cat:'수',method:'현장',amt:100000,note:''},
+  {n:101,name:'노규령',cat:'수',method:'현장',amt:100000,note:''},
+  {n:102,name:'이상연',cat:'수',method:'현장',amt:100000,note:''},
+  {n:103,name:'추현수',cat:'수',method:'현장',amt:200000,note:''},
+  {n:104,name:'이예린',cat:'수',method:'현장',amt:50000,note:''},
+  {n:105,name:'전현익',cat:'수',method:'현장',amt:100000,note:''},
+  {n:106,name:'신정민',cat:'수',method:'현장',amt:100000,note:''},
+  {n:107,name:'김기태',cat:'부',method:'현장',amt:100000,note:''},
+  {n:108,name:'김나영',cat:'수',method:'현장',amt:100000,note:''},
+  {n:109,name:'최은기',cat:'모',method:'현장',amt:100000,note:''},
+  {n:110,name:'최은정',cat:'모',method:'현장',amt:100000,note:''},
+  {n:111,name:'백형국 정환숙',cat:'부',method:'현장',amt:200000,note:''},
+  {n:112,name:'박병열',cat:'부',method:'현장',amt:100000,note:''},
+  {n:113,name:'유회철',cat:'수',method:'현장',amt:50000,note:''},
+  {n:114,name:'이현구',cat:'수',method:'현장',amt:100000,note:''},
+  {n:115,name:'조순옥 호연',cat:'형',method:'현장',amt:100000,note:'?'},
+  {n:116,name:'류석규',cat:'모',method:'현장',amt:500000,note:''},
+  {n:117,name:'안젤라',cat:'모',method:'현장',amt:200000,note:''},
+  {n:118,name:'여승연',cat:'수',method:'현장',amt:100000,note:''},
+  {n:119,name:'강동석',cat:'수',method:'현장',amt:100000,note:''},
+  {n:120,name:'오자영',cat:'부',method:'현장',amt:100000,note:''},
+  {n:121,name:'정일우',cat:'수',method:'현장',amt:200000,note:''},
+  {n:122,name:'김영준',cat:'수',method:'현장',amt:200000,note:''},
+  {n:123,name:'김정화 정진용',cat:'모',method:'현장',amt:100000,note:''},
+  {n:124,name:'서영준',cat:'부',method:'현장',amt:100000,note:''},
+  {n:125,name:'정환종',cat:'부',method:'현장',amt:200000,note:''},
+  {n:126,name:'연제원',cat:'형',method:'현장',amt:100000,note:'?'},
+  {n:127,name:'김명오',cat:'모',method:'현장',amt:200000,note:''},
+  {n:128,name:'류현 호준',cat:'모',method:'현장',amt:300000,note:''},
+  {n:129,name:'조용훈',cat:'형',method:'현장',amt:200000,note:''},
+  {n:130,name:'정수영',cat:'형',method:'현장',amt:200000,note:''},
+  {n:131,name:'서장원',cat:'형',method:'현장',amt:100000,note:''},
+  {n:132,name:'송해욱',cat:'형',method:'현장',amt:200000,note:''},
+  {n:133,name:'이나윤',cat:'수',method:'현장',amt:100000,note:''},
+  {n:134,name:'류석홍',cat:'모',method:'현장',amt:300000,note:''},
+  {n:135,name:'박병삼',cat:'부',method:'현장',amt:100000,note:'?'},
+  {n:136,name:'수창친구들',cat:'형',method:'현장',amt:300000,note:''},
+  {n:137,name:'김태환',cat:'형',method:'현장',amt:100000,note:''},
+  {n:138,name:'류원호',cat:'모',method:'현장',amt:500000,note:''},
+  {n:139,name:'류승호',cat:'모',method:'현장',amt:500000,note:''},
+  {n:140,name:'정경미',cat:'부',method:'현장',amt:100000,note:''},
+  {n:141,name:'홍기현',cat:'부',method:'현장',amt:100000,note:''},
+  {n:142,name:'전용욱',cat:'수',method:'현장',amt:100000,note:''},
+  {n:143,name:'이승훈',cat:'부',method:'현장',amt:200000,note:''},
+  {n:144,name:'최용현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:145,name:'김공순 김다원',cat:'형',method:'현장',amt:500000,note:''},
+  {n:146,name:'김대원 황상아',cat:'수',method:'현장',amt:300000,note:''},
+  {n:147,name:'원진우',cat:'수',method:'현장',amt:100000,note:''},
+  {n:148,name:'박상현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:149,name:'남민우',cat:'수',method:'현장',amt:50000,note:''},
+  {n:150,name:'이민교',cat:'수',method:'현장',amt:200000,note:''},
+  {n:151,name:'이량',cat:'수',method:'현장',amt:50000,note:''},
+  {n:152,name:'김찬영',cat:'수',method:'현장',amt:100000,note:''},
+  {n:153,name:'김현민',cat:'수',method:'현장',amt:100000,note:''},
+  {n:154,name:'양경',cat:'부',method:'현장',amt:100000,note:''},
+  {n:155,name:'라연열',cat:'부',method:'현장',amt:100000,note:''},
+  {n:156,name:'한진용',cat:'수',method:'현장',amt:50000,note:''},
+  {n:157,name:'강결',cat:'수',method:'현장',amt:100000,note:''},
+  {n:158,name:'박찬현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:159,name:'주민호',cat:'수',method:'현장',amt:150000,note:''},
+  {n:160,name:'전보현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:161,name:'조현희',cat:'수',method:'현장',amt:50000,note:''},
+  {n:162,name:'윤석민',cat:'수',method:'현장',amt:100000,note:''},
+  {n:163,name:'박기역',cat:'부',method:'현장',amt:100000,note:''},
+  {n:164,name:'권하경',cat:'수',method:'현장',amt:100000,note:''},
+  {n:165,name:'김상준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:166,name:'박정준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:167,name:'송은석',cat:'수',method:'현장',amt:100000,note:''},
+  {n:168,name:'이한수 태을',cat:'부',method:'현장',amt:50000,note:''},
+  {n:169,name:'권오현',cat:'수',method:'현장',amt:100000,note:''},
+  {n:170,name:'조우영',cat:'수',method:'현장',amt:100000,note:''},
+  {n:171,name:'김인권 이기민',cat:'수',method:'현장',amt:200000,note:''},
+  {n:172,name:'홍정호',cat:'수',method:'현장',amt:50000,note:''},
+  {n:173,name:'정종욱',cat:'형',method:'현장',amt:100000,note:'?'},
+  {n:174,name:'이영기',cat:'형',method:'현장',amt:200000,note:''},
+  {n:175,name:'정우익',cat:'수',method:'현장',amt:100000,note:''},
+  {n:176,name:'이성준',cat:'수',method:'현장',amt:100000,note:''},
+  {n:177,name:'류민호',cat:'모',method:'현장',amt:200000,note:''},
+  {n:178,name:'이상화',cat:'수',method:'현장',amt:100000,note:''},
+  {n:179,name:'류젬마 최우진',cat:'모',method:'현장',amt:300000,note:''},
+  {n:180,name:'3외삼촌',cat:'수',method:'현장',amt:300000,note:''},
+  {n:181,name:'송화준',cat:'수',method:'현장',amt:400000,note:''},
+  {n:182,name:'박현준',cat:'수',method:'현장',amt:300000,note:''},
+  {n:183,name:'정영석',cat:'수',method:'현장',amt:300000,note:''},
+  {n:184,name:'정종학',cat:'수',method:'현장',amt:300000,note:''},
+  {n:185,name:'고준석',cat:'수',method:'현장',amt:400000,note:''},
+  {n:186,name:'안동휘',cat:'수',method:'현장',amt:300000,note:''},
+  {n:201,name:'우동수',cat:'수',method:'입금',amt:100000,note:''},
+  {n:202,name:'임재성',cat:'수',method:'입금',amt:50000,note:''},
+  {n:203,name:'손영웅',cat:'수',method:'입금',amt:100000,note:''},
+  {n:204,name:'박세근',cat:'수',method:'입금',amt:200000,note:''},
+  {n:205,name:'김수진',cat:'수',method:'입금',amt:50000,note:''},
+  {n:206,name:'이미림',cat:'수',method:'입금',amt:100000,note:''},
+  {n:207,name:'이석헌',cat:'수',method:'입금',amt:50000,note:''},
+  {n:208,name:'김도원',cat:'수',method:'입금',amt:50000,note:''},
+  {n:209,name:'조원진',cat:'수',method:'입금',amt:100000,note:''},
+  {n:210,name:'조금남',cat:'수',method:'입금',amt:50000,note:''},
+  {n:211,name:'김현정',cat:'수',method:'입금',amt:50000,note:''},
+  {n:212,name:'박진아',cat:'수',method:'입금',amt:100000,note:''},
+  {n:213,name:'강해서',cat:'수',method:'입금',amt:100000,note:''},
+  {n:214,name:'이재성',cat:'수',method:'입금',amt:100000,note:''},
+  {n:215,name:'정재현',cat:'수',method:'입금',amt:100000,note:''},
+  {n:216,name:'허수재',cat:'수',method:'입금',amt:50000,note:''},
+  {n:217,name:'전찬호',cat:'수',method:'입금',amt:100000,note:''},
+  {n:218,name:'김주리',cat:'수',method:'입금',amt:50000,note:''},
+  {n:219,name:'김유민',cat:'수',method:'입금',amt:50000,note:''},
+  {n:220,name:'손지훈',cat:'수',method:'입금',amt:50000,note:''},
+  {n:221,name:'권남용',cat:'수',method:'입금',amt:50000,note:''},
+  {n:222,name:'김형준',cat:'수',method:'입금',amt:50000,note:''},
+  {n:223,name:'송정우',cat:'수',method:'입금',amt:100000,note:''},
+  {n:224,name:'김지민',cat:'수',method:'입금',amt:50000,note:''},
+  {n:225,name:'최혜빈',cat:'수',method:'입금',amt:100000,note:''},
+  {n:226,name:'최혜성',cat:'수',method:'입금',amt:100000,note:''},
+  {n:227,name:'홍현희',cat:'수',method:'입금',amt:150000,note:''},
+  {n:228,name:'정원재',cat:'수',method:'입금',amt:100000,note:''},
+  {n:229,name:'김채수',cat:'수',method:'입금',amt:50000,note:''},
+  {n:230,name:'김종연',cat:'수',method:'입금',amt:100000,note:''},
+  {n:231,name:'박진성',cat:'수',method:'입금',amt:50000,note:''},
+  {n:232,name:'남종원',cat:'수',method:'입금',amt:100000,note:''},
+  {n:233,name:'김기재',cat:'수',method:'입금',amt:50000,note:''},
+  {n:234,name:'유진혁',cat:'수',method:'입금',amt:50000,note:''},
+  {n:235,name:'이민형',cat:'수',method:'입금',amt:100000,note:''},
+  {n:236,name:'최현수',cat:'수',method:'입금',amt:50000,note:''},
+  {n:237,name:'송정훈',cat:'수',method:'입금',amt:100000,note:''},
+  {n:238,name:'구성령',cat:'수',method:'입금',amt:100000,note:''},
+  {n:239,name:'안두현',cat:'수',method:'입금',amt:50000,note:''},
+  {n:240,name:'이영기',cat:'수',method:'입금',amt:50000,note:''},
+  {n:241,name:'장찬희',cat:'수',method:'입금',amt:50000,note:''},
+  {n:242,name:'이동인',cat:'수',method:'입금',amt:100000,note:''},
+  {n:243,name:'유환',cat:'수',method:'입금',amt:50000,note:''},
+  {n:244,name:'우주원',cat:'수',method:'입금',amt:100000,note:''},
+  {n:245,name:'이상훈',cat:'수',method:'입금',amt:50000,note:''},
+  {n:246,name:'이창훈',cat:'수',method:'입금',amt:50000,note:''},
+  {n:247,name:'민지원',cat:'수',method:'입금',amt:100000,note:''},
+  {n:248,name:'김상호',cat:'수',method:'입금',amt:100000,note:''},
+  {n:249,name:'이인희',cat:'수',method:'입금',amt:50000,note:''},
+  {n:250,name:'김대중',cat:'수',method:'입금',amt:100000,note:''},
+  {n:251,name:'박정음',cat:'수',method:'입금',amt:50000,note:''},
+  {n:252,name:'한혁진',cat:'수',method:'입금',amt:70000,note:''}
+];
+
+const CATEGORY_LABEL = { '부': '부', '모': '모', '형': '형', '수': '수홍' };
+const CATEGORY_CLASS = { '부': 'cat-bu', '모': 'cat-mo', '형': 'cat-hyung', '수': 'cat-su' };
+
+let query = '';
+let filter = 'all';
+
+function formatAmount(n) { return n.toLocaleString('ko-KR') + '원'; }
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+  });
+}
+
+function renderRows(rows) {
+  return rows.map(function(r, i) {
+    var rowClass = i % 2 === 0 ? 'row-white' : 'row-stripe';
+    var catClass = CATEGORY_CLASS[r.cat] || '';
+    var catLabel = CATEGORY_LABEL[r.cat] || r.cat;
+    var note = r.note ? escapeHtml(r.note) : '-';
+    return '<tr class="' + rowClass + '">' +
+      '<td class="td-no">' + r.n + '</td>' +
+      '<td class="td-name">' + escapeHtml(r.name) + '</td>' +
+      '<td class="td-cat ' + catClass + '">' + catLabel + '</td>' +
+      '<td class="td-method">' + r.method + '</td>' +
+      '<td class="td-amt">' + formatAmount(r.amt) + '</td>' +
+      '<td class="td-note">' + note + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function render() {
+  var q = query.trim();
+  var filtered = DATA.filter(function(r) {
+    if (q && r.name.indexOf(q) === -1) return false;
+    if (filter === 'all') return true;
+    var parts = filter.split(':');
+    var type = parts[0], val = parts[1];
+    if (type === 'method') return r.method === val;
+    if (type === 'category') return r.cat === val;
+    return true;
+  });
+
+  var onsite = filtered.filter(function(r) { return r.method === '현장'; });
+  var transfer = filtered.filter(function(r) { return r.method === '입금'; });
+
+  document.getElementById('countNum').textContent = filtered.length;
+
+  var onsiteSection = document.getElementById('onsiteSection');
+  if (onsite.length === 0) {
+    onsiteSection.style.display = 'none';
+  } else {
+    onsiteSection.style.display = 'block';
+    document.getElementById('onsiteCount').textContent = onsite.length + '명';
+    document.getElementById('onsiteBody').innerHTML = renderRows(onsite);
+  }
+
+  var transferSection = document.getElementById('transferSection');
+  if (transfer.length === 0) {
+    transferSection.style.display = 'none';
+  } else {
+    transferSection.style.display = 'block';
+    document.getElementById('transferCount').textContent = transfer.length + '명';
+    document.getElementById('transferBody').innerHTML = renderRows(transfer);
+  }
+
+  document.getElementById('emptyState').style.display = filtered.length === 0 ? 'flex' : 'none';
+}
+
+var searchInput = document.getElementById('searchInput');
+var clearBtn = document.getElementById('clearBtn');
+
+searchInput.addEventListener('input', function(e) {
+  query = e.target.value;
+  clearBtn.style.display = query ? 'block' : 'none';
+  render();
+});
+
+clearBtn.addEventListener('click', function() {
+  query = '';
+  searchInput.value = '';
+  clearBtn.style.display = 'none';
+  render();
+});
+
+document.querySelectorAll('.filter-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    filter = btn.getAttribute('data-filter');
+    document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
