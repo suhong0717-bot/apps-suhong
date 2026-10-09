@@ -122,6 +122,15 @@ body {
 }
 .app-card:hover { border-color: var(--accent); background: var(--bg3); }
 .app-card:hover .app-card-arrow { color: var(--accent); }
+/* ── 새 앱 자리 (입주예정) ── */
+.app-card.slot-empty {
+  grid-column: 1 / -1; cursor: default; background: transparent;
+  border: 1px dashed var(--border); border-left: 3px dashed var(--fg3);
+  align-items: center; justify-content: center; text-align: center; min-height: 72px;
+}
+.app-card.slot-empty:hover { background: transparent; border-color: var(--border); }
+.slot-empty .app-card-name { color: var(--fg3); }
+.slot-empty .app-card-desc { color: var(--fg3); opacity: .7; }
 .app-card-top { display: flex; align-items: center; justify-content: space-between; }
 .app-card-icon { font-size: 22px; line-height: 1; }
 .app-card-arrow {
@@ -421,6 +430,10 @@ body {
       <div class="app-card-name">WEDDING LEDGER</div>
       <div class="app-card-desc">축의금 현장 · 입금 기록</div>
     </a>
+    <div class="app-card slot-empty" aria-label="새 앱 자리">
+      <div class="app-card-name">＋ 입주예정</div>
+      <div class="app-card-desc">새 앱이 들어올 자리</div>
+    </div>
   </div>
 
   <!-- Backup Hub -->
