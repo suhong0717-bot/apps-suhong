@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -505,6 +505,9 @@ td:first-child { text-align: left; color: var(--fg); }
   font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; padding: 4px 12px;
   border-radius: 20px; letter-spacing: 0;
 }
+
+/* 그래프 위 두 손가락 확대는 그래프만 조절 (페이지 확대 막음), 한 손가락 세로 스크롤은 허용 */
+canvas { touch-action: pan-y; }
 </style>
 </head>
 <body>
@@ -1520,11 +1523,23 @@ function sxAddEntry() {
 function sxDeleteLast() {
   if (!sxA.length && !sxB.length) return;
   const removedDate = sxA.length ? sxA[sxA.length - 1].date : (sxB.length ? sxB[sxB.length - 1].date : '');
+  const lastA = sxA[sxA.length - 1], lastB = sxB[sxB.length - 1];
   sxA = sxA.slice(0, -1);
   sxB = sxB.slice(0, -1);
   sxSave();
   renderSoxl();
-  document.getElementById('sx-delete-msg').textContent = `✓ ${removedDate || '마지막'} 거래를 A/B 계좌에서 삭제했어요.`;
+  // 삭제한 내용을 입력칸에 다시 채워서, 틀린 부분만 고쳐 다시 추가할 수 있게
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = (v === null || v === undefined) ? '' : v; };
+  const typeOf = (row) => { const d = row ? sxParseTxDelta(row.tx) : 0; return d > 0 ? 'buy' : d < 0 ? 'sell' : 'none'; };
+  const qtyOf = (row) => { const d = row ? Math.abs(sxParseTxDelta(row.tx)) : 0; return d ? String(d) : ''; };
+  const ref = lastA || lastB;
+  set('sx-form-success', ''); ['sx-form-success','sx-form-error'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ''; });
+  set('sx-date', ref ? ref.date : '');
+  set('sx-close', ref && ref.close != null ? ref.close : '');
+  set('sx-a-type', typeOf(lastA)); set('sx-a-qty', qtyOf(lastA));
+  set('sx-b-type', typeOf(lastB)); set('sx-b-qty', qtyOf(lastB));
+  set('sx-b-trade', lastB && lastB.trade != null && lastB.trade !== lastB.close ? lastB.trade : '');
+  document.getElementById('sx-delete-msg').textContent = `✓ ${removedDate || '마지막'} 거래를 삭제하고 입력칸에 다시 채웠어요. 고쳐서 추가하기를 누르세요.`;
 }
 
 function toggleVersionPopup(e) {
