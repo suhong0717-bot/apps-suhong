@@ -49,7 +49,9 @@ body{font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;color:var(--fg);mi
 /* ── Tabs ── */
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);background:var(--bg2);position:sticky;top:47px;z-index:50}
 .tab{background:none;border:0;border-right:1px solid var(--border);color:var(--fg3);font-family:'IBM Plex Sans KR',sans-serif;font-size:12px;padding:9px 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
-.tab:last-child{border-right:0}
+.tab:nth-child(4),.tab:last-child{border-right:0}
+.tab.wide{grid-column:span 2;flex-direction:row;justify-content:center;gap:6px;border-top:1px solid var(--border);padding:7px 0}
+.tab.wide .n{font-size:11px}
 .tab .n{font-family:'IBM Plex Mono',monospace;font-size:10px}
 .tab.on{color:var(--accent);background:var(--bg3);box-shadow:inset 0 -2px 0 var(--accent)}
 
@@ -79,6 +81,9 @@ body{font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;color:var(--fg);mi
 .chip.paid{border-color:rgba(0,200,81,.35);color:var(--green)}
 .chip.na{color:var(--fg3);border-style:dashed}
 .chip.na .s::before{background:none;border:1px solid currentColor;box-sizing:border-box}
+.chip.ign{color:var(--fg3);border-style:dashed}
+.chip.ign .s{text-decoration:line-through}
+.chip.ign .s::before{background:none;border:1px solid currentColor;box-sizing:border-box}
 .chip small{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--fg3);font-weight:400}
 
 .empty{text-align:center;color:var(--fg3);font-size:12px;padding:40px 0;font-family:'IBM Plex Mono',monospace;line-height:1.8}
@@ -149,6 +154,8 @@ body{font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;color:var(--fg);mi
     <button class="tab" data-t="wip">청구 중<span class="n"></span></button>
     <button class="tab" data-t="done">완료<span class="n"></span></button>
     <button class="tab" data-t="all">전체<span class="n"></span></button>
+    <button class="tab wide" data-t="ins">보험 미청구<span class="n"></span></button>
+    <button class="tab wide" data-t="co">회사 미청구<span class="n"></span></button>
   </div>
 
   <div id="list" class="list"></div>
@@ -187,8 +194,8 @@ body{font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;color:var(--fg);mi
 <script>
 var KEY = 'medical-claims-v1';
 var CATS = ['외래', '약국', '검사', '치과', '한의원', '입원', '기타'];
-var ST = { todo: '미청구', sent: '청구함', paid: '지급완료', na: '해당없음' };
-var NEXT = { todo: 'sent', sent: 'paid', paid: 'todo' };
+var ST = { todo: '미청구', sent: '청구함', paid: '지급완료', ign: '무시', na: '해당없음' };
+var NEXT = { todo: 'sent', sent: 'paid', paid: 'ign', ign: 'todo' };
 var data = load();
 var MED_IMPORT = [ // 메리츠 지급설명서(사고 2025-5609859) — 보험 지급완료, 회사 미청구
   ['2025-05-15','버팀병원','입원',5563280,'1차 입원 5/15~5/22 · 영양제 제외','2025-07-11'],
@@ -366,7 +373,7 @@ function group(r) {
 }
 
 function renderSum(k, bigId, barId, subId) {
-  var c = { todo: 0, sent: 0, paid: 0, na: 0 };
+  var c = { todo: 0, sent: 0, paid: 0, ign: 0, na: 0 };
   data.forEach(function (r) { c[r[k].st]++; });
   var big = document.getElementById(bigId);
   big.classList.toggle('zero', c.todo === 0);
@@ -376,7 +383,7 @@ function renderSum(k, bigId, barId, subId) {
     '<i style="width:' + c.paid / tot * 100 + '%;background:var(--green)"></i>' +
     '<i style="width:' + c.sent / tot * 100 + '%;background:var(--blue)"></i>' +
     '<i style="width:' + c.todo / tot * 100 + '%;background:var(--accent)"></i>';
-  document.getElementById(subId).innerHTML = '청구함 <em>' + c.sent + '</em> 완료 <em>' + c.paid + '</em>';
+  document.getElementById(subId).innerHTML = '청구함 <em>' + c.sent + '</em> 완료 <em>' + c.paid + '</em>' + (c.ign ? ' 무시 <em>' + c.ign + '</em>' : '');
 }
 
 function chip(r, k) {
@@ -397,19 +404,23 @@ function render() {
     al.innerHTML = '⚠ 보험 청구 기한(3년) 임박 <b>' + (urgent.length - gone) + '건</b>' + (gone ? ' · 지남 <b>' + gone + '건</b>' : '') + '<span class="go">보기 →</span>';
   }
 
-  var cnt = { todo: 0, wip: 0, done: 0, all: data.length };
-  data.forEach(function (r) { cnt[group(r)]++; });
+  var cnt = { todo: 0, wip: 0, done: 0, all: data.length, ins: 0, co: 0 };
+  data.forEach(function (r) { cnt[group(r)]++; if (r.ins.st === 'todo') cnt.ins++; if (r.co.st === 'todo') cnt.co++; });
   document.querySelectorAll('.tab').forEach(function (b) {
     b.classList.toggle('on', b.dataset.t === tab);
     b.querySelector('.n').textContent = cnt[b.dataset.t];
   });
 
-  var rows = data.filter(function (r) { return tab === 'all' || group(r) === tab; })
-    .sort(function (a, b) { return tab === 'todo' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date); });
+  var rows = data.filter(function (r) {
+      if (tab === 'all') return true;
+      if (tab === 'ins' || tab === 'co') return r[tab].st === 'todo';
+      return group(r) === tab;
+    })
+    .sort(function (a, b) { return (tab === 'todo' || tab === 'ins' || tab === 'co') ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date); });
 
   var el = document.getElementById('list');
   if (!rows.length) {
-    el.innerHTML = '<div class="empty">' + (data.length ? (tab === 'todo' ? '미청구 건이 없어요 ✓' : '해당하는 건이 없어요') : '아직 기록이 없어요<br>＋ 추가로 영수증을 입력하세요') + '</div>';
+    el.innerHTML = '<div class="empty">' + (data.length ? ((tab === 'todo' || tab === 'ins' || tab === 'co') ? '미청구 건이 없어요 ✓' : '해당하는 건이 없어요') : '아직 기록이 없어요<br>＋ 추가로 영수증을 입력하세요') + '</div>';
     return;
   }
   var html = '', yr = '';
