@@ -273,6 +273,38 @@ var MED_IMPORT = [ // 메리츠 지급설명서(사고 2025-5609859) — 보험 
   save();
   try { localStorage.setItem(FLAG, '1'); } catch (e) {}
 })();
+(function () { // 회사 인트라넷 청구이력 반영 (2026-11-07 확인분)
+  var FLAG = 'medical-co-intranet-2611';
+  try { if (localStorage.getItem(FLAG)) return; } catch (e) { return; }
+  ['mz25-1', 'mz25-9', 'mz25-10', 'mz25-15', 'mz25-16', 'mz25-17', 'mz25-18', 'mz25-19', 'mz25-30'].forEach(function (id) {
+    var r = data.find(function (x) { return x.id === id; });
+    if (r && r.co.st !== 'paid') r.co = { st: 'paid', at: '' };
+  });
+  ['mz25-9', 'mz25-10'].forEach(function (id) {
+    var r = data.find(function (x) { return x.id === id; });
+    if (r && r.name === '약국') r.name = '오산중앙약국';
+  });
+  [
+    ['2025-11-08', '버팀병원', '외래', 26200, ''],
+    ['2025-11-11', '송파 파트너정형외과', '외래', 12300, '출장 중'],
+    ['2025-11-13', '송파 파트너정형외과', '외래', 10700, '출장 중'],
+    ['2025-11-15', '버팀병원', '외래', 18400, ''],
+    ['2026-04-20', '버팀병원', '검사', 467700, 'MRI'],
+    ['2026-04-20', '버팀병원', '외래', 61700, 'MRI 후 주사'],
+    ['2026-05-06', '버팀병원', '외래', 67800, ''],
+    ['2026-05-12', '세종스포츠정형외과', '외래', 55600, ''],
+    ['2026-05-16', 'SNU약국', '약국', 7500, ''],
+    ['2026-05-16', 'SNU병원', '외래', 53500, ''],
+    ['2026-05-16', '서울영상의학과', '검사', 316900, ''],
+    ['2026-05-19', '버팀병원', '외래', 68900, '']
+  ].forEach(function (a, i) {
+    var id = 'co26-' + i;
+    if (data.some(function (x) { return x.id === id; })) return;
+    data.push({ id: id, date: a[0], name: a[1], cat: a[2], amt: a[3], memo: a[4], ins: { st: 'todo', at: '' }, co: { st: 'paid', at: '' } });
+  });
+  save();
+  try { localStorage.setItem(FLAG, '1'); } catch (e) {}
+})();
 var tab = 'todo';
 try { tab = localStorage.getItem('medical-tab') || 'todo'; } catch (e) {}
 
