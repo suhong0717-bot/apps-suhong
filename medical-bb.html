@@ -327,6 +327,23 @@ var MED_IMPORT = [ // 메리츠 지급설명서(사고 2025-5609859) — 보험 
   save();
   try { localStorage.setItem(FLAG, '1'); } catch (e) {}
 })();
+(function () { // 카드내역(가계부) 매칭 신규 5건 (2026-11-07)
+  var FLAG = 'medical-card-2611';
+  try { if (localStorage.getItem(FLAG)) return; } catch (e) { return; }
+  [
+    ['2025-10-21', '버팀병원', '외래', 9700, ''],
+    ['2025-11-03', '버팀병원', '외래', 34000, '2차 입원 퇴원일 별도 결제'],
+    ['2026-07-03', '세종스포츠정형외과', '외래', 54000, ''],
+    ['2026-07-30', '버팀병원', '외래', 67800, ''],
+    ['2026-10-27', '세종스포츠정형외과', '외래', 5600, '']
+  ].forEach(function (a, i) {
+    var id = 'cd26-' + i;
+    if (data.some(function (x) { return x.id === id; })) return;
+    data.push({ id: id, date: a[0], name: a[1], cat: a[2], amt: a[3], memo: a[4], ins: { st: 'todo', at: '' }, co: { st: 'todo', at: '' } });
+  });
+  save();
+  try { localStorage.setItem(FLAG, '1'); } catch (e) {}
+})();
 var tab = 'todo';
 try { tab = localStorage.getItem('medical-tab') || 'todo'; } catch (e) {}
 
