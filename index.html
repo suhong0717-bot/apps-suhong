@@ -430,7 +430,15 @@ body {
       <div class="app-card-name">WEDDING LEDGER</div>
       <div class="app-card-desc">축의금 현장 · 입금 기록</div>
     </a>
-    <div class="app-card slot-empty" aria-label="새 앱 자리">
+    <a class="app-card" href="medical-bb.html">
+      <div class="app-card-top">
+        <div class="app-card-icon">🏥</div>
+        <div class="app-card-arrow">→</div>
+      </div>
+      <div class="app-card-name">의료비 정산</div>
+      <div class="app-card-desc">보험 · 회사 지원금 청구 체크</div>
+    </a>
+    <div class="app-card slot-empty" aria-label="새 앱 자리" style="grid-column:auto">
       <div class="app-card-name">＋ 입주예정</div>
       <div class="app-card-desc">새 앱이 들어올 자리</div>
     </div>
@@ -463,7 +471,7 @@ body {
       </div>
       <div class="backup-info-chip">
         <div class="backup-info-label">백업 항목</div>
-        <div class="backup-info-val" id="backupItemsVal">4개 앱</div>
+        <div class="backup-info-val" id="backupItemsVal">5개 앱</div>
       </div>
     </div>
 
@@ -548,6 +556,7 @@ const BACKUP_KEYS = {
     'soxl-last-checked',
   ],
   'wedding': ['wedding-ledger-v1'],
+  'medical': ['medical-claims-v1'],
 };
 
 let tokenClient = null;

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>의료비 정산</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap">
+<style>
+:root {
+  --bg:#0f1318; --bg2:#141720; --bg3:#1a1f2e; --border:#252a38; --border2:#1e2230;
+  --fg:#e8eaf0; --fg2:#a0a8b8; --fg3:#556070;
+  --accent:#ff6b00; --green:#00c851; --red:#ff3d3d; --blue:#58a6ff; --amber:#d4a853;
+  color-scheme: dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;color:var(--fg);min-height:100vh;padding:47px 0 96px}
+.mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+
+/* ── Topbar ── */
+.bb-topbar{position:fixed;top:0;left:0;right:0;height:44px;background:var(--bg2);border-bottom:3px solid var(--accent);display:flex;align-items:center;justify-content:space-between;padding:0 12px;z-index:9999}
+.bb-home-btn{display:inline-flex;align-items:center;background:rgba(255,107,0,.08);border:1px solid rgba(255,107,0,.3);color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;padding:4px 12px;border-radius:20px;letter-spacing:.04em;text-decoration:none}
+.topbar-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.12em;white-space:nowrap;position:absolute;left:50%;transform:translateX(-50%)}
+.bb-ver-btn{background:var(--bg3);border:1px solid rgba(255,107,0,.3);color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;cursor:pointer}
+.bb-popup{display:none;position:absolute;right:0;top:38px;background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent);width:240px;z-index:10000;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.bb-popup-title{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.08em;padding:8px 12px 6px;border-bottom:1px solid var(--border)}
+
+.wrap{padding:12px 12px 0;display:flex;flex-direction:column;gap:12px;max-width:640px;margin:0 auto}
+
+/* ── Summary ── */
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sum-card{background:var(--bg2);border:1px solid var(--border);border-top:3px solid var(--c);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.sum-card.ins{--c:var(--blue)} .sum-card.co{--c:var(--amber)}
+.sum-hd{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--c)}
+.sum-big{display:flex;align-items:baseline;gap:4px}
+.sum-big b{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:700;line-height:1;color:var(--fg)}
+.sum-big span{font-size:11px;color:var(--fg2)}
+.sum-big.zero b{color:var(--green)}
+.sum-sub{display:flex;gap:10px;font-size:10px;color:var(--fg3);font-family:'IBM Plex Mono',monospace}
+.sum-sub em{font-style:normal;color:var(--fg2)}
+.bar{height:4px;background:var(--bg3);display:flex;overflow:hidden}
+.bar i{display:block;height:100%}
+
+.alert{display:flex;align-items:center;gap:8px;background:rgba(255,61,61,.08);border:1px solid rgba(255,61,61,.35);border-left:3px solid var(--red);padding:9px 12px;font-size:12px;color:var(--fg);cursor:pointer}
+.alert b{color:var(--red);font-family:'IBM Plex Mono',monospace}
+.alert .go{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--red)}
+
+/* ── Tabs ── */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);background:var(--bg2);position:sticky;top:47px;z-index:50}
+.tab{background:none;border:0;border-right:1px solid var(--border);color:var(--fg3);font-family:'IBM Plex Sans KR',sans-serif;font-size:12px;padding:9px 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
+.tab:last-child{border-right:0}
+.tab .n{font-family:'IBM Plex Mono',monospace;font-size:10px}
+.tab.on{color:var(--accent);background:var(--bg3);box-shadow:inset 0 -2px 0 var(--accent)}
+
+/* ── List ── */
+.yr{display:flex;align-items:baseline;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--fg2);letter-spacing:.06em;padding:6px 2px 4px;border-bottom:1px solid var(--border)}
+.yr span{font-weight:400;color:var(--fg3);font-size:10px}
+.list{display:flex;flex-direction:column;gap:6px}
+.rec{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--edge,var(--border));padding:10px 10px 10px 11px;display:flex;flex-direction:column;gap:8px}
+.rec.todo{--edge:var(--accent)} .rec.wip{--edge:var(--blue)} .rec.done{--edge:var(--green);opacity:.72}
+.rec-top{display:flex;align-items:flex-start;gap:10px;cursor:pointer;min-width:0}
+.rec-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--fg2);line-height:1.3;flex:none;width:38px}
+.rec-date small{display:block;font-size:9px;color:var(--fg3)}
+.rec-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.rec-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-meta{display:flex;gap:6px;align-items:center;font-size:10px;color:var(--fg3);flex-wrap:wrap}
+.cat{border:1px solid var(--border);padding:0 5px;color:var(--fg2);font-size:10px}
+.dl{color:var(--red);font-family:'IBM Plex Mono',monospace}
+.dl.warn{color:var(--amber)}
+.rec-amt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--fg2);flex:none;text-align:right}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.chip{display:flex;align-items:center;justify-content:space-between;gap:6px;border:1px solid var(--border);background:var(--bg);padding:6px 8px;cursor:pointer;font-family:'IBM Plex Sans KR',sans-serif;color:var(--fg2);font-size:11px;min-width:0;-webkit-tap-highlight-color:transparent}
+.chip .k{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.06em;color:var(--fg3)}
+.chip .s{display:flex;align-items:center;gap:5px;font-weight:600;white-space:nowrap}
+.chip .s::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.chip.todo{border-color:rgba(255,107,0,.45);color:var(--accent);background:rgba(255,107,0,.06)}
+.chip.sent{border-color:rgba(88,166,255,.45);color:var(--blue);background:rgba(88,166,255,.06)}
+.chip.paid{border-color:rgba(0,200,81,.35);color:var(--green)}
+.chip.na{color:var(--fg3);border-style:dashed}
+.chip.na .s::before{background:none;border:1px solid currentColor;box-sizing:border-box}
+.chip small{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--fg3);font-weight:400}
+
+.empty{text-align:center;color:var(--fg3);font-size:12px;padding:40px 0;font-family:'IBM Plex Mono',monospace;line-height:1.8}
+
+/* ── FAB + sheet ── */
+.fab{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--accent);color:#111;border:0;font-family:'IBM Plex Sans KR',sans-serif;font-weight:600;font-size:14px;padding:12px 18px;border-radius:24px;box-shadow:0 6px 18px rgba(0,0,0,.5);cursor:pointer;z-index:100}
+.dim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--bg2);border-top:3px solid var(--accent);z-index:201;max-height:92vh;overflow:auto;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sheet-in{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.sheet h3{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.08em;color:var(--accent);display:flex;justify-content:space-between}
+.sheet h3 button{background:none;border:0;color:var(--fg3);font-size:18px;cursor:pointer;line-height:1}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fld label{font-size:10px;color:var(--fg3);font-family:'IBM Plex Mono',monospace;letter-spacing:.06em}
+.fld input,.fld select{background:var(--bg);border:1px solid var(--border);color:var(--fg);font-family:'IBM Plex Sans KR',sans-serif;font-size:14px;padding:9px 10px;width:100%;min-width:0;border-radius:0}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--accent)}
+.cats{display:flex;flex-wrap:wrap;gap:6px}
+.cats button{background:var(--bg);border:1px solid var(--border);color:var(--fg2);font-size:12px;padding:6px 10px;cursor:pointer;font-family:'IBM Plex Sans KR',sans-serif}
+.cats button.on{border-color:var(--accent);color:var(--accent);background:rgba(255,107,0,.08)}
+.trk{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.trk-box{border:1px solid var(--border);padding:8px;display:flex;flex-direction:column;gap:6px}
+.trk-box .k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em}
+.trk-box.ins .k{color:var(--blue)} .trk-box.co .k{color:var(--amber)}
+.seg{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
+.seg button{background:var(--bg);border:1px solid var(--border);color:var(--fg3);font-size:11px;padding:5px 0;cursor:pointer;font-family:'IBM Plex Sans KR',sans-serif}
+.seg button.on{color:var(--fg);border-color:var(--fg2);background:var(--bg3)}
+.btns{display:flex;gap:8px}
+.btn{flex:1;border:1px solid var(--border);background:var(--bg3);color:var(--fg);font-size:14px;padding:11px;cursor:pointer;font-family:'IBM Plex Sans KR',sans-serif}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#111;font-weight:600}
+.btn.del{flex:none;color:var(--red);border-color:rgba(255,61,61,.4);background:none;padding:11px 14px}
+.err{color:var(--red);font-size:11px;min-height:14px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--bg3);border:1px solid var(--border);color:var(--fg);font-size:12px;padding:9px 12px;display:flex;gap:12px;align-items:center;z-index:300;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.toast button{background:none;border:0;color:var(--accent);font-weight:600;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans KR',sans-serif}
+</style>
+</head>
+<body>
+
+<div class="bb-topbar">
+  <a href="index.html" class="bb-home-btn">← AI Tool 모음</a>
+  <span class="topbar-title">의료비 정산</span>
+  <div style="position:relative;">
+    <button class="bb-ver-btn" onclick="toggleVersionPopup(event)">v</button>
+    <div id="versionPopup" class="bb-popup"><div class="bb-popup-title">업데이트 내역</div></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="sum">
+    <div class="sum-card ins">
+      <div class="sum-hd">보험 청구</div>
+      <div class="sum-big" id="insBig"><b>0</b><span>건 미청구</span></div>
+      <div class="bar" id="insBar"></div>
+      <div class="sum-sub" id="insSub"></div>
+    </div>
+    <div class="sum-card co">
+      <div class="sum-hd">회사 지원금</div>
+      <div class="sum-big" id="coBig"><b>0</b><span>건 미청구</span></div>
+      <div class="bar" id="coBar"></div>
+      <div class="sum-sub" id="coSub"></div>
+    </div>
+  </div>
+
+  <div class="alert" id="alert" hidden onclick="setTab('todo')"></div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab" data-t="todo">할 일<span class="n"></span></button>
+    <button class="tab" data-t="wip">청구 중<span class="n"></span></button>
+    <button class="tab" data-t="done">완료<span class="n"></span></button>
+    <button class="tab" data-t="all">전체<span class="n"></span></button>
+  </div>
+
+  <div id="list" class="list"></div>
+</div>
+
+<button class="fab" onclick="openSheet()">＋ 추가</button>
+
+<div class="dim" id="dim" hidden onclick="closeSheet()"></div>
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-in">
+    <h3><span id="sheetTitle">새 의료비</span><button onclick="closeSheet()">×</button></h3>
+    <div class="row2">
+      <div class="fld"><label>진료일</label><input type="date" id="fDate"></div>
+      <div class="fld"><label>금액 (선택)</label><input type="tel" inputmode="numeric" id="fAmt" placeholder="0"></div>
+    </div>
+    <div class="fld"><label>병원 / 약국</label><input type="text" id="fName" placeholder="예: 연세정형외과"></div>
+    <div class="fld"><label>구분</label><div class="cats" id="fCats"></div></div>
+    <div class="fld"><label>메모 (선택)</label><input type="text" id="fMemo" placeholder="예: MRI, 도수치료 5회"></div>
+    <div class="fld"><label>청구 대상</label>
+      <div class="trk">
+        <div class="trk-box ins"><span class="k">보험</span><div class="seg" data-trk="ins"><button data-v="y">대상</button><button data-v="na">해당없음</button></div></div>
+        <div class="trk-box co"><span class="k">회사</span><div class="seg" data-trk="co"><button data-v="y">대상</button><button data-v="na">해당없음</button></div></div>
+      </div>
+    </div>
+    <div class="err" id="fErr"></div>
+    <div class="btns">
+      <button class="btn del" id="fDel" hidden>삭제</button>
+      <button class="btn" onclick="closeSheet()">취소</button>
+      <button class="btn pri" id="fSave">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden><span id="toastMsg"></span><button id="toastUndo">되돌리기</button></div>
+
+<script>
+var KEY = 'medical-claims-v1';
+var CATS = ['외래', '약국', '검사', '치과', '한의원', '입원', '기타'];
+var ST = { todo: '미청구', sent: '청구함', paid: '지급완료', na: '해당없음' };
+var NEXT = { todo: 'sent', sent: 'paid', paid: 'todo' };
+var data = load();
+var tab = 'todo';
+try { tab = localStorage.getItem('medical-tab') || 'todo'; } catch (e) {}
+
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} }
+function today() { var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
+function fmt(n) { return (n || 0).toLocaleString('ko-KR'); }
+function esc(s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+/* 실손보험 청구 기한: 진료일 + 3년 */
+function daysLeft(r) {
+  var d = new Date(r.date + 'T00:00:00'); d.setFullYear(d.getFullYear() + 3);
+  return Math.ceil((d - new Date(today() + 'T00:00:00')) / 864e5);
+}
+function group(r) {
+  var a = r.ins.st, b = r.co.st;
+  if (a === 'todo' || b === 'todo') return 'todo';
+  if (a === 'sent' || b === 'sent') return 'wip';
+  return 'done';
+}
+
+function renderSum(k, bigId, barId, subId) {
+  var c = { todo: 0, sent: 0, paid: 0, na: 0 };
+  data.forEach(function (r) { c[r[k].st]++; });
+  var big = document.getElementById(bigId);
+  big.classList.toggle('zero', c.todo === 0);
+  big.innerHTML = c.todo ? '<b>' + c.todo + '</b><span>건 미청구</span>' : '<b>0</b><span>건 · 다 했어요</span>';
+  var tot = c.todo + c.sent + c.paid || 1;
+  document.getElementById(barId).innerHTML =
+    '<i style="width:' + c.paid / tot * 100 + '%;background:var(--green)"></i>' +
+    '<i style="width:' + c.sent / tot * 100 + '%;background:var(--blue)"></i>' +
+    '<i style="width:' + c.todo / tot * 100 + '%;background:var(--accent)"></i>';
+  document.getElementById(subId).innerHTML = '청구함 <em>' + c.sent + '</em> 완료 <em>' + c.paid + '</em>';
+}
+
+function chip(r, k) {
+  var s = r[k].st, t = r[k].at ? '<small>' + r[k].at.slice(2).replace(/-/g, '.') + '</small>' : '';
+  return '<button class="chip ' + s + '" data-id="' + r.id + '" data-k="' + k + '"' + (s === 'na' ? ' disabled' : '') + '>' +
+    '<span class="k">' + (k === 'ins' ? '보험' : '회사') + '</span><span class="s">' + ST[s] + '</span>' + t + '</button>';
+}
+
+function render() {
+  renderSum('ins', 'insBig', 'insBar', 'insSub');
+  renderSum('co', 'coBig', 'coBar', 'coSub');
+
+  var urgent = data.filter(function (r) { return r.ins.st === 'todo' && daysLeft(r) <= 180; });
+  var al = document.getElementById('alert');
+  al.hidden = !urgent.length;
+  if (urgent.length) {
+    var gone = urgent.filter(function (r) { return daysLeft(r) < 0; }).length;
+    al.innerHTML = '⚠ 보험 청구 기한(3년) 임박 <b>' + (urgent.length - gone) + '건</b>' + (gone ? ' · 지남 <b>' + gone + '건</b>' : '') + '<span class="go">보기 →</span>';
+  }
+
+  var cnt = { todo: 0, wip: 0, done: 0, all: data.length };
+  data.forEach(function (r) { cnt[group(r)]++; });
+  document.querySelectorAll('.tab').forEach(function (b) {
+    b.classList.toggle('on', b.dataset.t === tab);
+    b.querySelector('.n').textContent = cnt[b.dataset.t];
+  });
+
+  var rows = data.filter(function (r) { return tab === 'all' || group(r) === tab; })
+    .sort(function (a, b) { return tab === 'todo' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date); });
+
+  var el = document.getElementById('list');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty">' + (data.length ? (tab === 'todo' ? '미청구 건이 없어요 ✓' : '해당하는 건이 없어요') : '아직 기록이 없어요<br>＋ 추가로 영수증을 입력하세요') + '</div>';
+    return;
+  }
+  var html = '', yr = '';
+  rows.forEach(function (r) {
+    var y = r.date.slice(0, 4);
+    if (y !== yr) {
+      yr = y;
+      var n = rows.filter(function (x) { return x.date.slice(0, 4) === y; }).length;
+      html += '<div class="yr">' + y + '<span>' + n + '건</span></div>';
+    }
+    var dl = '';
+    if (r.ins.st === 'todo') {
+      var d = daysLeft(r);
+      if (d < 0) dl = '<span class="dl">보험 기한 지남</span>';
+      else if (d <= 180) dl = '<span class="dl' + (d > 60 ? ' warn' : '') + '">보험 D-' + d + '</span>';
+    }
+    html += '<div class="rec ' + group(r) + '">' +
+      '<div class="rec-top" data-edit="' + r.id + '">' +
+        '<div class="rec-date">' + r.date.slice(5).replace('-', '.') + '<small>' + y + '</small></div>' +
+        '<div class="rec-main"><div class="rec-name">' + esc(r.name) + '</div>' +
+          '<div class="rec-meta"><span class="cat">' + esc(r.cat) + '</span>' + (r.memo ? '<span>' + esc(r.memo) + '</span>' : '') + dl + '</div></div>' +
+        (r.amt ? '<div class="rec-amt">' + fmt(r.amt) + '</div>' : '') +
+      '</div>' +
+      '<div class="chips">' + chip(r, 'ins') + chip(r, 'co') + '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+function setTab(t) { tab = t; try { localStorage.setItem('medical-tab', t); } catch (e) {} render(); }
+document.getElementById('tabs').addEventListener('click', function (e) { var b = e.target.closest('.tab'); if (b) setTab(b.dataset.t); });
+
+/* 상태 칩: 누를 때마다 미청구 → 청구함 → 지급완료 (되돌리기 가능) */
+var toastTimer, undoFn;
+function toast(msg, undo) {
+  document.getElementById('toastMsg').textContent = msg;
+  undoFn = undo;
+  document.getElementById('toast').hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { document.getElementById('toast').hidden = true; }, 4000);
+}
+document.getElementById('toastUndo').onclick = function () { if (undoFn) undoFn(); document.getElementById('toast').hidden = true; };
+
+document.getElementById('list').addEventListener('click', function (e) {
+  var c = e.target.closest('.chip');
+  if (c && !c.disabled) {
+    var r = data.find(function (x) { return x.id === c.dataset.id; }), k = c.dataset.k;
+    var prev = { st: r[k].st, at: r[k].at };
+    r[k].st = NEXT[prev.st];
+    r[k].at = r[k].st === 'todo' ? '' : today();
+    save(); render();
+    toast((k === 'ins' ? '보험' : '회사') + ' · ' + r.name + ' → ' + ST[r[k].st], function () { r[k].st = prev.st; r[k].at = prev.at; save(); render(); });
+    return;
+  }
+  var t = e.target.closest('[data-edit]');
+  if (t) openSheet(t.dataset.edit);
+});
+
+/* 입력 시트 */
+var editId = null, fCat = '외래', fTrk = { ins: 'y', co: 'y' }, delArmed = false;
+document.getElementById('fCats').innerHTML = CATS.map(function (c) { return '<button type="button" data-c="' + c + '">' + c + '</button>'; }).join('');
+document.getElementById('fCats').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { fCat = b.dataset.c; paintForm(); } });
+document.querySelectorAll('.seg').forEach(function (s) {
+  s.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { fTrk[s.dataset.trk] = b.dataset.v; paintForm(); } });
+});
+document.getElementById('fAmt').addEventListener('input', function () {
+  var v = this.value.replace(/[^0-9]/g, ''); this.value = v ? Number(v).toLocaleString('ko-KR') : '';
+});
+function paintForm() {
+  document.querySelectorAll('#fCats button').forEach(function (b) { b.classList.toggle('on', b.dataset.c === fCat); });
+  document.querySelectorAll('.seg').forEach(function (s) {
+    s.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === fTrk[s.dataset.trk]); });
+  });
+}
+function openSheet(id) {
+  editId = id || null; delArmed = false;
+  var r = id ? data.find(function (x) { return x.id === id; }) : null;
+  document.getElementById('sheetTitle').textContent = r ? '의료비 수정' : '새 의료비';
+  document.getElementById('fDate').value = r ? r.date : today();
+  document.getElementById('fAmt').value = r && r.amt ? fmt(r.amt) : '';
+  document.getElementById('fName').value = r ? r.name : '';
+  document.getElementById('fMemo').value = r ? r.memo || '' : '';
+  fCat = r ? r.cat : '외래';
+  fTrk = { ins: r && r.ins.st === 'na' ? 'na' : 'y', co: r && r.co.st === 'na' ? 'na' : 'y' };
+  var del = document.getElementById('fDel'); del.hidden = !r; del.textContent = '삭제';
+  document.getElementById('fErr').textContent = '';
+  paintForm();
+  document.getElementById('dim').hidden = false;
+  document.getElementById('sheet').hidden = false;
+}
+function closeSheet() { document.getElementById('dim').hidden = true; document.getElementById('sheet').hidden = true; }
+
+document.getElementById('fSave').onclick = function () {
+  var date = document.getElementById('fDate').value, name = document.getElementById('fName').value.trim();
+  if (!date) { document.getElementById('fErr').textContent = '진료일을 넣어 주세요'; return; }
+  if (!name) { document.getElementById('fErr').textContent = '병원 이름을 넣어 주세요'; return; }
+  var amt = Number(document.getElementById('fAmt').value.replace(/[^0-9]/g, '')) || 0;
+  var memo = document.getElementById('fMemo').value.trim();
+  function trk(old, v) {
+    if (v === 'na') return { st: 'na', at: '' };
+    return old && old.st !== 'na' ? old : { st: 'todo', at: '' };
+  }
+  if (editId) {
+    var r = data.find(function (x) { return x.id === editId; });
+    r.date = date; r.name = name; r.cat = fCat; r.amt = amt; r.memo = memo;
+    r.ins = trk(r.ins, fTrk.ins); r.co = trk(r.co, fTrk.co);
+  } else {
+    data.push({ id: Date.now().toString(36), date: date, name: name, cat: fCat, amt: amt, memo: memo, ins: trk(null, fTrk.ins), co: trk(null, fTrk.co) });
+  }
+  save(); closeSheet(); render();
+};
+document.getElementById('fDel').onclick = function () {
+  if (!delArmed) { delArmed = true; this.textContent = '한 번 더 눌러 삭제'; return; }
+  data = data.filter(function (x) { return x.id !== editId; });
+  save(); closeSheet(); render();
+};
+
+render();
+
+function toggleVersionPopup(e) {
+  e.stopPropagation();
+  var p = document.getElementById('versionPopup');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function () { var p = document.getElementById('versionPopup'); if (p) p.style.display = 'none'; });
+</script>
+<script src="version.js" data-page="medical"></script>
+</body>
+</html>
