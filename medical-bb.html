@@ -305,6 +305,28 @@ var MED_IMPORT = [ // 메리츠 지급설명서(사고 2025-5609859) — 보험 
   save();
   try { localStorage.setItem(FLAG, '1'); } catch (e) {}
 })();
+(function () { // 영수증 사진 검토 반영 (2026-11-07): 신규 4건 + 정정
+  var FLAG = 'medical-receipts-2611';
+  try { if (localStorage.getItem(FLAG)) return; } catch (e) { return; }
+  function get(id) { return data.find(function (x) { return x.id === id; }); }
+  var r;
+  if ((r = get('co26-11')) && r.amt === 68900) r.amt = 68800;
+  if ((r = get('co26-8')) && r.name === 'SNU약국') { r.name = '밸런스약국'; r.memo = '에스앤유서울병원 처방'; }
+  if ((r = get('co26-9')) && r.name === 'SNU병원') r.name = '에스앤유서울병원';
+  if ((r = get('co26-10')) && !r.memo) r.memo = 'MRI';
+  [
+    ['2026-04-20', '오산중앙약국', '약국', 14720, '버팀병원 처방'],
+    ['2026-07-03', '버팀병원', '외래', 67800, ''],
+    ['2026-07-03', '오산중앙약국', '약국', 14720, '버팀병원 처방'],
+    ['2026-11-02', '서울영상의학과', '검사', 315600, 'MRI']
+  ].forEach(function (a, i) {
+    var id = 'rc26-' + i;
+    if (get(id)) return;
+    data.push({ id: id, date: a[0], name: a[1], cat: a[2], amt: a[3], memo: a[4], ins: { st: 'todo', at: '' }, co: { st: 'todo', at: '' } });
+  });
+  save();
+  try { localStorage.setItem(FLAG, '1'); } catch (e) {}
+})();
 var tab = 'todo';
 try { tab = localStorage.getItem('medical-tab') || 'todo'; } catch (e) {}
 
