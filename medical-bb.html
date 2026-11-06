@@ -255,6 +255,24 @@ var MED_IMPORT = [ // 메리츠 지급설명서(사고 2025-5609859) — 보험 
   save();
   try { localStorage.setItem(FLAG, '1'); } catch (e) {}
 })();
+(function () { // 회사 정산 완료: 버팀병원 외래 영수증 6장 + 1차 입원 금액을 영수증 결제액으로
+  var FLAG = 'medical-co-burtim-2506';
+  try { if (localStorage.getItem(FLAG)) return; } catch (e) { return; }
+  ['mz25-2', 'mz25-4', 'mz25-5', 'mz25-6', 'mz25-7', 'mz25-8'].forEach(function (id) {
+    var r = data.find(function (x) { return x.id === id; });
+    if (r && r.co.st !== 'paid') r.co = { st: 'paid', at: '' };
+  });
+  ['mz25-0', 'bt250515-op'].forEach(function (id) { // 5/15 입원·MRI도 회사 지급완료
+    var r = data.find(function (x) { return x.id === id; });
+    if (r && r.co.st !== 'paid') r.co = { st: 'paid', at: '' };
+  });
+  var cert = data.find(function (x) { return x.id === 'mz25-3'; }); // 5/31 제증명료: 회사 해당없음
+  if (cert && cert.co.st === 'todo') cert.co = { st: 'na', at: '' };
+  var h = data.find(function (x) { return x.id === 'mz25-0'; });
+  if (h && h.amt === 5563280) { h.amt = 5091280; h.memo = '1차 입원 5/15~5/22 · 영양제 제외 · MRI 472,000은 5/15 영수증'; }
+  save();
+  try { localStorage.setItem(FLAG, '1'); } catch (e) {}
+})();
 var tab = 'todo';
 try { tab = localStorage.getItem('medical-tab') || 'todo'; } catch (e) {}
 
