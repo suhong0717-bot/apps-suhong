@@ -235,6 +235,26 @@ var MED_IMPORT = [ // 메리츠 지급설명서(사고 2025-5609859) — 보험 
   save();
   try { localStorage.setItem(FLAG, '1'); } catch (e) {}
 })();
+(function () { // 메리츠 어린이보험 상해수술비 (정액) — 1차 입원 중 수술 5/16
+  var FLAG = 'medical-import-meritz-2025-surgery';
+  try { if (localStorage.getItem(FLAG)) return; } catch (e) { return; }
+  if (!data.some(function (r) { return r.id === 'mz25-surg'; }))
+    data.push({ id: 'mz25-surg', date: '2025-05-16', name: '버팀병원 수술', cat: '입원', amt: 0,
+      memo: '상해수술비 정액 · 어린이보험 1,000,000원 지급', ins: { st: 'paid', at: '2025-06-27' }, co: { st: 'na', at: '' } });
+  save();
+  try { localStorage.setItem(FLAG, '1'); } catch (e) {}
+})();
+(function () { // 회사 청구 반영: 버팀병원 1차 입원 + 입원 전날 외래(MRI) 영수증
+  var FLAG = 'medical-co-burtim-2505';
+  try { if (localStorage.getItem(FLAG)) return; } catch (e) { return; }
+  var r = data.find(function (x) { return x.id === 'mz25-0'; });
+  if (r && r.co.st === 'todo') r.co = { st: 'sent', at: '' };
+  if (!data.some(function (x) { return x.id === 'bt250515-op'; }))
+    data.push({ id: 'bt250515-op', date: '2025-05-15', name: '버팀병원', cat: '외래', amt: 472000,
+      memo: 'MRI · 입원비에 합산돼 보험 청구됨', ins: { st: 'paid', at: '2025-06-27' }, co: { st: 'sent', at: '' } });
+  save();
+  try { localStorage.setItem(FLAG, '1'); } catch (e) {}
+})();
 var tab = 'todo';
 try { tab = localStorage.getItem('medical-tab') || 'todo'; } catch (e) {}
 
