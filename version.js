@@ -2,10 +2,11 @@
    - VERSION: 모든 페이지 우상단 버튼에 표시되는 숫자 (변경이 생길 때마다 올림)
    - LOG: 페이지별 업데이트 내역 (실제로 바뀐 페이지에만 줄 추가, 최신이 맨 위) */
 (function () {
-  var VERSION = 'v10.27';
+  var VERSION = 'v10.28';
 
   var LOG = {
     index: [
+      ['v10.28', '모든 페이지 확대 막기'],
       ['v10.20', '의료비 정산 앱 추가'],
       ['v10.19', '화면 확대 고정'],
       ['v10.18', '새 앱 자리(입주예정) 추가'],
@@ -16,6 +17,7 @@
       ['v08.07', '초기 출시']
     ],
     follow: [
+      ['v10.28', '페이지 확대 막기'],
       ['v10.19', '화면 확대 고정'],
       ['v10.17', '포트폴리오 요약 입력칸 숫자 키패드'],
       ['v10.12', '거래 입력 배치 정리, 화면 폭 대응'],
@@ -25,6 +27,7 @@
       ['v08.07q', '뒤로가기 팝업']
     ],
     asset: [
+      ['v10.28', '페이지 확대 막기'],
       ['v10.19', '화면 확대 고정'],
       ['v10.13', '상단 중복 제목·날짜 제거'],
       ['v10.10', '상단바 가운데 제목 추가'],
@@ -32,6 +35,7 @@
       ['v08.07', '초기 출시']
     ],
     soxl: [
+      ['v10.28', '페이지 확대 막기 (그래프 핀치는 유지)'],
       ['v10.19', '그래프 확대 시 화면 확대 막음, 삭제 시 입력칸 자동 채움'],
       ['v10.16', '그래프 종가 선을 밝은 노란색으로 변경'],
       ['v10.15', 'A계좌 7/23~10/6 실제 매매 42건 반영'],
@@ -41,6 +45,7 @@
       ['v08.07', '초기 출시']
     ],
     medical: [
+      ['v10.28', '페이지 확대 막기'],
       ['v10.27', '상태에 무시 추가, 보험·회사 미청구 필터'],
       ['v10.26', '카드내역 매칭 신규 5건'],
       ['v10.25', '영수증 검토 반영 (신규 4건, 금액·이름 정정)'],
@@ -51,6 +56,7 @@
       ['v10.20', '초기 출시']
     ],
     wedding: [
+      ['v10.28', '페이지 확대 막기'],
       ['v10.19', '화면 확대 고정'],
       ['v10.11', '검은 바탕으로 통일'],
       ['v10.10', '상단바 가운데 제목 추가'],
@@ -103,7 +109,24 @@
     });
   }
 
+  /* 페이지 확대 막기 (모든 페이지 공통). 속슬 그래프 핀치는 그래프 자체 코드가 처리하므로 그대로 동작 */
+  function blockZoom() {
+    var st = document.createElement('style');
+    st.textContent = 'html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%}';
+    document.head.appendChild(st);
+    // 두 손가락 이상 움직임: 브라우저 기본 확대만 막고, 페이지 안의 터치 처리는 그대로 전달됨
+    document.addEventListener('touchmove', function (e) {
+      if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault();
+    }, { passive: false });
+    // iOS 사파리 제스처 확대
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (t) {
+      document.addEventListener(t, function (e) { e.preventDefault(); }, { passive: false });
+    });
+    // 두 번 탭 확대는 위 touch-action 설정으로 막힘 (버튼 연속 탭은 그대로 동작)
+  }
+
   function init() { apply(); fixBack(); }
+  blockZoom();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
