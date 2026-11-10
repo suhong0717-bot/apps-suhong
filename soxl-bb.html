@@ -486,6 +486,10 @@ td:first-child { text-align: left; color: var(--fg); }
   margin-bottom: 4px;
 }
 
+.sx-range-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+.sx-range-btn { background: var(--bg2); border: 1px solid var(--border); color: var(--fg2); font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 9px 0; cursor: pointer; letter-spacing: .04em; -webkit-tap-highlight-color: transparent; }
+.sx-range-btn.on { border-color: var(--accent); color: var(--accent); background: rgba(255,107,0,.08); }
+
 /* ── Status messages ── */
 .form-error { color: var(--red); font-family: var(--mono); font-size: 11px; margin-bottom: 6px; }
 .form-success { color: var(--green); font-family: var(--mono); font-size: 11px; margin-bottom: 6px; }
@@ -658,6 +662,11 @@ canvas { touch-action: pan-y; }
     </div>
   </div>
 
+  <div class="sx-range-btns" id="sx-range-btns">
+    <button type="button" class="sx-range-btn" data-n="0" onclick="sxSetRange(0)">전체</button>
+    <button type="button" class="sx-range-btn" data-n="30" onclick="sxSetRange(30)">30일</button>
+    <button type="button" class="sx-range-btn" data-n="10" onclick="sxSetRange(10)">10일</button>
+  </div>
   <div id="sx-range-label"></div>
 
   <!-- A Table -->
@@ -667,9 +676,9 @@ canvas { touch-action: pan-y; }
         <span class="sx-section-header-title" style="color:var(--blue);">A계좌</span>
         <span class="sx-section-header-meta">이동평균법 기준</span>
       </div>
-      <span id="sx-a-chevron" class="sx-section-header-meta">▴ 접기</span>
+      <span id="sx-a-chevron" class="sx-section-header-meta">▾ 펼치기</span>
     </div>
-    <div id="sx-a-table-wrap" class="sx-table-outer">
+    <div id="sx-a-table-wrap" class="sx-table-outer" style="display:none;">
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
         <table style="min-width:760px;">
           <thead><tr><th>날짜</th><th>잔고</th><th>거래</th><th>종가</th><th>거래가</th><th>평단</th><th>실현손익</th><th>누적손익</th><th>전체매도가정</th></tr></thead>
@@ -686,9 +695,9 @@ canvas { touch-action: pan-y; }
         <span class="sx-section-header-title" style="color:#cc0055;">B계좌</span>
         <span class="sx-section-header-meta">이동평균법 기준</span>
       </div>
-      <span id="sx-b-chevron" class="sx-section-header-meta">▴ 접기</span>
+      <span id="sx-b-chevron" class="sx-section-header-meta">▾ 펼치기</span>
     </div>
-    <div id="sx-b-table-wrap" class="sx-table-outer">
+    <div id="sx-b-table-wrap" class="sx-table-outer" style="display:none;">
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
         <table style="min-width:760px;">
           <thead><tr><th>날짜</th><th>잔고</th><th>거래</th><th>종가</th><th>거래가</th><th>평단</th><th>실현손익</th><th>누적손익</th><th>전체매도가정</th></tr></thead>
@@ -1373,9 +1382,24 @@ function sxUpdateSummary() {
   if (bTotalEl) { bTotalEl.textContent = sxFmt(bTotalNow); bTotalEl.style.color = sxColor(bTotalNow); }
 }
 
+// 전체 / 최근 N개 점으로 그래프 범위 바로 맞추기
+function sxSetRange(n) {
+  if (!sxFullRows.length) return;
+  const last = sxFullRows.length - 1;
+  sxRangeEnd = last;
+  sxRangeStart = n > 0 ? Math.max(0, last - (n - 1)) : 0;
+  renderSoxl();
+}
+
 function sxUpdateRangeUI() {
   const label = document.getElementById('sx-range-label');
   if (!label || !sxFullRows.length) return;
+  const last = sxFullRows.length - 1;
+  document.querySelectorAll('.sx-range-btn').forEach(b => {
+    const n = Number(b.dataset.n);
+    const want = n > 0 ? Math.max(0, last - (n - 1)) : 0;
+    b.classList.toggle('on', sxRangeEnd === last && sxRangeStart === want);
+  });
   if (sxRangeStart === 0 && sxRangeEnd === sxFullRows.length - 1) {
     label.textContent = '두 손가락으로 핀치 확대/축소 · 두 손가락 드래그로 이동';
   } else {
