@@ -438,7 +438,15 @@ body {
       <div class="app-card-name">의료비 정산</div>
       <div class="app-card-desc">보험 · 회사 지원금 청구 체크</div>
     </a>
-    <div class="app-card slot-empty" aria-label="새 앱 자리" style="grid-column:auto">
+    <a class="app-card" href="gift-bb.html">
+      <div class="app-card-top">
+        <div class="app-card-icon">🎁</div>
+        <div class="app-card-arrow">→</div>
+      </div>
+      <div class="app-card-name">유찬이 증여 플랜</div>
+      <div class="app-card-desc">증여 기록 · 10년 한도 계획</div>
+    </a>
+    <div class="app-card slot-empty" aria-label="새 앱 자리">
       <div class="app-card-name">＋ 입주예정</div>
       <div class="app-card-desc">새 앱이 들어올 자리</div>
     </div>
@@ -471,7 +479,7 @@ body {
       </div>
       <div class="backup-info-chip">
         <div class="backup-info-label">백업 항목</div>
-        <div class="backup-info-val" id="backupItemsVal">5개 앱</div>
+        <div class="backup-info-val" id="backupItemsVal">6개 앱</div>
       </div>
     </div>
 
@@ -557,6 +565,7 @@ const BACKUP_KEYS = {
   ],
   'wedding': ['wedding-ledger-v1'],
   'medical': ['medical-claims-v1'],
+  'gift': ['gift-plan-v1'],
 };
 
 let tokenClient = null;
