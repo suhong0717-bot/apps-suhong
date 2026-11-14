@@ -53,6 +53,11 @@ body{font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;color:var(--fg);mi
 .stats div:last-child{border-right:0}
 .stats b{font-family:'IBM Plex Mono',monospace;font-size:15px;white-space:nowrap}
 
+.chart{padding:10px 8px 4px}
+.legend{display:flex;gap:14px;justify-content:center;font-size:11px;color:var(--fg2);padding-bottom:10px}
+.legend i{display:inline-block;width:14px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
+.win{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--fg3)}
+.pill.over{color:var(--red);border-color:rgba(255,61,61,.5);cursor:default}
 .buckets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:12px}
 .bk{border:1px solid var(--border);padding:8px;display:flex;flex-direction:column;gap:4px;background:var(--bg);min-width:0}
 .bk.cur{border-color:var(--mint);box-shadow:inset 0 2px 0 var(--mint)}
@@ -119,7 +124,7 @@ body{font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;color:var(--fg);mi
 <div class="wrap">
   <div class="card hero">
     <div class="kid"><div class="av">👶</div><div><b>유찬</b><small id="kidSub"></small></div></div>
-    <div><div class="lbl" id="heroLbl">이번 구간 비과세 한도 사용</div>
+    <div><div class="lbl" id="heroLbl">오늘 기준 쓸 수 있는 비과세 한도</div>
       <div class="big" id="heroBig"></div></div>
     <div class="gauge" id="gauge"></div>
     <div class="gl" id="gaugeLbl"></div>
@@ -127,15 +132,16 @@ body{font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;color:var(--fg);mi
   </div>
 
   <div class="card"><div class="stats">
-    <div><span class="lbl">남은 한도</span><b id="stLeft" style="color:var(--mint)"></b></div>
-    <div><span class="lbl">다음 구간</span><b id="stNext"></b></div>
+    <div><span class="lbl">최근 10년 증여</span><b id="stLeft"></b></div>
+    <div><span class="lbl">다음 한도 회복</span><b id="stNext"></b></div>
     <div><span class="lbl">신고 필요</span><b id="stNeed"></b></div>
   </div></div>
 
   <div class="card">
-    <div class="hd"><span class="tag">10Y</span><b>구간별 한도</b><span class="r">부모·조부모 합산</span></div>
-    <div class="buckets" id="buckets"></div>
-    <div class="note">미성년(만 19세 미만)은 10년 동안 2,000만원, 성년은 5,000만원까지 증여세가 없어요. 부모·조부모가 준 돈을 모두 합쳐요. 한도 안이라도 신고해 두면 나중에 자금 출처를 증명하기 좋아요.</div>
+    <div class="hd"><span class="tag">10Y</span><b>최근 10년 합산 vs 한도</b><span class="r">부모·조부모 합산</span></div>
+    <div class="chart"><svg id="chart" viewBox="0 0 360 170" width="100%"></svg></div>
+    <div class="legend"><span><i style="border-color:var(--mint)"></i>실행</span><span><i style="border-color:var(--blue);border-top-style:dashed"></i>계획 포함</span><span><i style="border-color:var(--amber);border-top-style:dashed"></i>한도</span></div>
+    <div class="note">증여할 때마다 <b style="color:var(--fg2)">그날 기준 지난 10년 동안 받은 돈을 모두 합쳐</b> 한도와 비교해요. 한도는 받는 날 미성년(만 19세 미만)이면 2,000만원, 성년이면 5,000만원이에요. 10년이 지난 증여는 합산에서 빠져서 그만큼 한도가 다시 생겨요. 한도 안이라도 신고해 두면 나중에 자금 출처를 증명하기 좋아요.</div>
   </div>
 
   <div class="card">
@@ -157,6 +163,7 @@ body{font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;color:var(--fg);mi
       <div class="fld"><label>날짜</label><input type="date" id="fDate"></div>
       <div class="fld"><label>금액 (만원)</label><input type="tel" inputmode="numeric" id="fAmt" placeholder="예: 500"></div>
     </div>
+    <span class="hint" id="fLimHint"></span>
     <div class="fld"><label>준 사람</label><div class="opts" id="fGiver"></div></div>
     <div class="fld"><label>형태</label><div class="opts" id="fKind"></div></div>
     <div class="fld"><label>메모 (선택)</label><input type="text" id="fMemo" placeholder="예: 돌 기념, TIGER S&amp;P500 10주"></div>
@@ -200,18 +207,15 @@ function man(n) { // 원 → "1,234만" / "1억 2,000만"
 }
 function dot(iso) { return iso.replace(/-/g, '.'); }
 
-/* 구간: 0~9세 2천, 10~18세 2천(미성년), 19~28세 5천, 29~38세 5천 */
-var BUCKETS = [
-  { from: 0, to: 10, lim: 2000 * MAN, name: '0~9세' },
-  { from: 10, to: 19, lim: 2000 * MAN, name: '10~18세' },
-  { from: 19, to: 29, lim: 5000 * MAN, name: '19~28세' },
-  { from: 29, to: 39, lim: 5000 * MAN, name: '29~38세' }
-];
-BUCKETS.forEach(function (b) { b.start = addYears(BIRTH, b.from); b.end = addYears(BIRTH, b.to); });
-function bucketOf(iso) { for (var i = 0; i < BUCKETS.length; i++) if (iso >= BUCKETS[i].start && iso < BUCKETS[i].end) return i; return -1; }
-function sums(i) {
-  var b = BUCKETS[i], s = { done: 0, plan: 0 };
-  data.forEach(function (r) { if (r.date >= b.start && r.date < b.end) s[r.st] += r.amt; });
+/* 10년 합산 규칙: 증여일 기준 지난 10년(그날 포함) 받은 금액 합계 ≤ 그날 한도 */
+function limitAt(iso) { return ageAt(iso) >= 19 ? 5000 * MAN : 2000 * MAN; }
+function winSum(iso, withPlan, skipId) {
+  var from = addYears(iso, -10), s = 0;
+  data.forEach(function (r) {
+    if (r.id === skipId) return;
+    if (!withPlan && r.st !== 'done') return;
+    if (r.date > from && r.date <= iso) s += r.amt;
+  });
   return s;
 }
 /* 신고 기한: 증여한 달의 말일부터 3개월 */
@@ -225,36 +229,40 @@ function dday(iso) { return Math.round((new Date(iso + 'T00:00:00') - new Date(t
 
 function render() {
   var t = today(), age = Math.max(0, ageAt(t));
-  var ci = bucketOf(t); if (ci < 0) ci = 0;
-  var cb = BUCKETS[ci], cs = sums(ci);
-  document.getElementById('kidSub').textContent = dot(BIRTH) + ' 생 · 만 ' + age + '세 · ' + cb.name + ' 구간';
+  var lim = limitAt(t), used = winSum(t, false);
+  var left = Math.max(0, lim - used);
+  document.getElementById('kidSub').textContent = dot(BIRTH) + ' 생 · 만 ' + age + '세 · 한도 ' + man(lim) + (age < 19 ? ' (미성년)' : ' (성년)');
+  document.getElementById('heroBig').innerHTML = '<b>' + man(left) + '</b><span>남음 · 한도 ' + man(lim) + '원</span>';
 
-  var used = cs.done, tot = cs.done + cs.plan;
-  document.getElementById('heroLbl').textContent = '이번 구간(' + cb.name + ') 비과세 한도 사용';
-  document.getElementById('heroBig').innerHTML = '<b>' + man(used) + '</b><span>/ ' + man(cb.lim) + '원</span>';
-  var pd = Math.min(used / cb.lim, 1) * 100, pp = Math.min(tot / cb.lim, 1) * 100 - pd;
-  var over = tot > cb.lim;
+  // 앞으로 1년 안의 계획까지 합친 사용량 (게이지 빗금)
+  var horizon = addYears(t, 1), planNear = 0;
+  data.forEach(function (r) { if (r.st === 'plan' && r.date > t && r.date <= horizon) planNear += r.amt; });
+  var pd = Math.min(used / lim, 1) * 100, pp = Math.max(0, Math.min((used + planNear) / lim, 1) * 100 - pd);
   document.getElementById('gauge').innerHTML =
-    '<i style="left:0;width:' + pd + '%;background:' + (used > cb.lim ? 'var(--red)' : 'var(--mint)') + '"></i>' +
-    '<i style="left:' + pd + '%;width:' + pp + '%;background:repeating-linear-gradient(45deg,' + (over ? 'rgba(255,61,61,.45)' : 'rgba(61,214,176,.4)') + ' 0 4px,transparent 4px 8px)"></i>';
-  document.getElementById('gaugeLbl').innerHTML = '<span>0</span><span>실행 ' + Math.round(used / cb.lim * 100) + '% · 계획 ' + Math.round(cs.plan / cb.lim * 100) + '%</span><span>' + man(cb.lim) + '</span>';
-  var om = document.getElementById('overMsg');
-  om.hidden = !over;
-  if (over) om.textContent = '계획까지 합치면 한도를 ' + man(tot - cb.lim) + '원 넘어요. 넘는 금액은 증여세 대상이에요.';
+    '<i style="left:0;width:' + pd + '%;background:' + (used > lim ? 'var(--red)' : 'var(--mint)') + '"></i>' +
+    '<i style="left:' + pd + '%;width:' + pp + '%;background:repeating-linear-gradient(45deg,rgba(88,166,255,.45) 0 4px,transparent 4px 8px)"></i>';
+  document.getElementById('gaugeLbl').innerHTML = '<span>최근 10년 ' + man(used) + '</span><span>1년 내 계획 ' + man(planNear) + '</span><span>' + man(lim) + '</span>';
 
-  var left = Math.max(0, cb.lim - used);
-  document.getElementById('stLeft').textContent = man(left);
-  var nb = BUCKETS[ci + 1];
-  document.getElementById('stNext').textContent = nb ? nb.start.slice(0, 7).replace('-', '.') : '–';
+  // 계획 포함해서 한도를 넘는 날짜 찾기
+  var overs = data.filter(function (r) { return winSum(r.date, true) > limitAt(r.date); });
+  var om = document.getElementById('overMsg');
+  om.hidden = !overs.length;
+  if (overs.length) {
+    var f0 = overs.sort(function (a, b) { return a.date.localeCompare(b.date); })[0];
+    om.textContent = dot(f0.date) + ' 증여에서 10년 합산이 한도를 ' + man(winSum(f0.date, true) - limitAt(f0.date)) + '원 넘어요. 넘는 금액은 증여세 대상이에요.';
+  }
+
+  document.getElementById('stLeft').textContent = man(used);
+  // 다음 회복: 지금 합산에 들어가 있는 실행 건 중 가장 먼저 10년이 지나는 것
+  var inWin = data.filter(function (r) { return r.st === 'done' && r.date > addYears(t, -10) && r.date <= t; })
+    .sort(function (a, b) { return a.date.localeCompare(b.date); });
+  document.getElementById('stNext').innerHTML = inWin.length
+    ? addYears(inWin[0].date, 10).slice(0, 7).replace('-', '.') + '<span style="font-size:10px;color:var(--mint)"> +' + man(inWin[0].amt) + '</span>' : '–';
   var need = data.filter(function (r) { return r.st === 'done' && r.rep === 'need'; }).length;
   var ne = document.getElementById('stNeed');
   ne.textContent = need + '건'; ne.style.color = need ? 'var(--accent)' : 'var(--fg2)';
 
-  document.getElementById('buckets').innerHTML = BUCKETS.map(function (b, i) {
-    var s = sums(i);
-    return '<div class="bk' + (i === ci ? ' cur' : '') + '"><span class="lbl">' + b.name + '</span><b>' + man(s.done) + '</b><span class="lbl">/ ' + man(b.lim) + '</span>' +
-      '<div class="mini"><i style="width:' + Math.min(s.done / b.lim, 1) * 100 + '%;background:var(--mint)"></i><i style="width:' + Math.min(s.plan / b.lim, 1) * 100 + '%;background:rgba(61,214,176,.35)"></i></div></div>';
-  }).join('');
+  drawChart();
 
   var rows = data.slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
   document.getElementById('logCnt').textContent = rows.length + '건';
@@ -270,12 +278,48 @@ function render() {
       pills = '<button class="pill ' + (r.rep === 'done' ? 'ok' : 'need') + '" data-rep="' + r.id + '">' + (r.rep === 'done' ? '신고 완료' : '신고 필요') + '</button>';
       if (r.rep !== 'done') { var d = dday(deadline(r.date)); pills += '<span class="dd">' + (d >= 0 ? '마감 D-' + d : '마감 ' + (-d) + '일 지남') + '</span>'; }
     }
-    pills = '<span class="pill kind">' + esc(r.kind) + '</span>' + pills;
+    var ws = winSum(r.date, true), wl = limitAt(r.date);
+    if (ws > wl) pills += '<span class="pill over">한도 초과 ' + man(ws - wl) + '</span>';
+    pills = '<span class="pill kind">' + esc(r.kind) + '</span>' + pills + '<span class="win">10년 합산 ' + man(ws) + '/' + man(wl) + '</span>';
     return '<div class="row' + (r.st === 'plan' ? ' plan' : '') + '" data-id="' + r.id + '">' +
       '<span class="d">' + dot(r.date) + '<small>만 ' + Math.max(0, ageAt(r.date)) + '세</small></span>' +
       '<div class="m"><span class="t">' + esc(r.giver) + (r.memo ? ' · ' + esc(r.memo) : '') + '</span><span class="pills">' + pills + '</span></div>' +
       '<span class="a">' + man(r.amt) + '</span></div>';
   }).join('');
+}
+
+function drawChart() {
+  var W = 360, H = 170, L = 34, R = 8, T = 12, B = 22;
+  var lastAge = 30;
+  data.forEach(function (r) { lastAge = Math.max(lastAge, ageAt(r.date) + 11); });
+  lastAge = Math.min(lastAge, 60);
+  var pts = [], ymax = 5000 * MAN;
+  for (var m = 0; m <= lastAge * 12; m += 2) {
+    var y = Number(BIRTH.slice(0, 4)) + Math.floor((Number(BIRTH.slice(5, 7)) - 1 + m) / 12);
+    var mo = (Number(BIRTH.slice(5, 7)) - 1 + m) % 12 + 1;
+    var iso = y + '-' + String(mo).padStart(2, '0') + '-' + BIRTH.slice(8);
+    var d = winSum(iso, false), p = winSum(iso, true);
+    pts.push({ a: m / 12, d: d, p: p, l: limitAt(iso) });
+    ymax = Math.max(ymax, p);
+  }
+  ymax = Math.ceil(ymax / (1000 * MAN)) * 1000 * MAN;
+  function X(a) { return L + a / lastAge * (W - L - R); }
+  function Y(v) { return T + (1 - v / ymax) * (H - T - B); }
+  var g = '';
+  for (var v = 0; v <= ymax; v += (ymax > 6000 * MAN ? 2000 : 1000) * MAN) {
+    g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="#252a38"/>' +
+      '<text x="' + (L - 4) + '" y="' + (Y(v) + 3) + '" text-anchor="end">' + (v / MAN >= 1000 ? (v / MAN / 1000) + '천' : 0) + '</text>';
+  }
+  for (var a = 0; a <= lastAge; a += 10) g += '<text x="' + X(a) + '" y="' + (H - 6) + '" text-anchor="middle">' + a + '세</text>';
+  var ta = Math.max(0, (new Date(today()) - new Date(BIRTH)) / (365.25 * 864e5));
+  g += '<line x1="' + X(ta) + '" x2="' + X(ta) + '" y1="' + T + '" y2="' + (H - B) + '" stroke="#ff6b00" stroke-dasharray="2 3"/>' +
+    '<text x="' + (X(ta) + 3) + '" y="' + (T + 8) + '" fill="#ff6b00">오늘</text>';
+  function line(key, color, dash, w) {
+    return '<polyline fill="none" stroke="' + color + '" stroke-width="' + w + '"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') +
+      ' points="' + pts.map(function (q) { return X(q.a).toFixed(1) + ',' + Y(q[key]).toFixed(1); }).join(' ') + '"/>';
+  }
+  document.getElementById('chart').innerHTML = '<g font-family="IBM Plex Mono,monospace" font-size="9" fill="#556070">' + g + '</g>' +
+    line('l', '#d4a853', '4 3', 1.5) + line('p', '#58a6ff', '3 3', 1.5) + line('d', '#3dd6b0', '', 2.2);
 }
 
 document.getElementById('list').addEventListener('click', function (e) {
@@ -315,6 +359,11 @@ function paint() {
   document.getElementById('fRepWrap').hidden = f.st !== 'done';
   var d = document.getElementById('fDate').value;
   document.getElementById('fRepHint').textContent = d ? '신고 기한: ' + dot(deadline(d)) + ' (증여한 달 말일부터 3개월)' : '';
+  var lh = document.getElementById('fLimHint');
+  if (d) {
+    var ws = winSum(d, true, editId), wl = limitAt(d);
+    lh.innerHTML = '이 날짜 기준 10년 합산 ' + man(ws) + ' / 한도 ' + man(wl) + ' → <b style="color:' + (ws >= wl ? 'var(--red)' : 'var(--mint)') + '">' + man(Math.max(0, wl - ws)) + '원까지 가능</b>';
+  } else lh.textContent = '';
 }
 function openSheet(id) {
   editId = id || null; delArmed = false;
